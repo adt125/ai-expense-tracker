@@ -1,6 +1,7 @@
 # Backend
-/backend/__pycache__
+**/__pycache__
 /backend/.env
+/backend/.venv
 /backend/*.sqlite
 
 # Frontend
@@ -9,3 +10,6 @@
 
 # General
 .DS_Store
+
+#vs-code
+settings.json

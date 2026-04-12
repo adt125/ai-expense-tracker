@@ -19,4 +19,12 @@ CREATE TABLE IF NOT EXISTS expenses (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS user_settings (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+    budget_goal NUMERIC(10, 2) NOT NULL DEFAULT 50000.0,
+    currency VARCHAR(10) NOT NULL DEFAULT 'INR',
+    email_alerts VARCHAR(20) NOT NULL DEFAULT 'enabled'
+);
+
 CREATE INDEX IF NOT EXISTS idx_expenses_user_date ON expenses(user_id, date);

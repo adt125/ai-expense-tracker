@@ -54,6 +54,56 @@ def get_expenses(db: Session, user_id: int, start_date: Optional[date] = None, e
     return query.order_by(models.Expense.date.desc()).all()
 
 
+def get_expense_by_id(db: Session, user_id: int, expense_id: int) -> Optional[models.Expense]:
+    return (
+        db.query(models.Expense)
+        .filter(models.Expense.user_id == user_id, models.Expense.id == expense_id)
+        .first()
+    )
+
+
+def update_expense(db: Session, user_id: int, expense_id: int, expense_update: schemas.ExpenseBase) -> Optional[models.Expense]:
+    expense = get_expense_by_id(db, user_id, expense_id)
+    if not expense:
+        return None
+    expense.amount = Decimal(str(expense_update.amount))
+    expense.date = expense_update.date
+    expense.description = expense_update.description
+    expense.primary_tag = expense_update.primary_tag
+    expense.secondary_tag = expense_update.secondary_tag
+    expense.payment_source = expense_update.payment_source
+    db.commit()
+    db.refresh(expense)
+    return expense
+
+
+def delete_expense(db: Session, user_id: int, expense_id: int) -> bool:
+    expense = get_expense_by_id(db, user_id, expense_id)
+    if not expense:
+        return False
+    db.delete(expense)
+    db.commit()
+    return True
+
+
+def get_or_create_user_settings(db: Session, user_id: int) -> models.UserSettings:
+    settings = db.query(models.UserSettings).filter(models.UserSettings.user_id == user_id).first()
+    if not settings:
+        settings = models.UserSettings(user_id=user_id, budget_goal=50000.0)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    return settings
+
+
+def update_user_settings(db: Session, user_id: int, budget_goal: float) -> models.UserSettings:
+    settings = get_or_create_user_settings(db, user_id)
+    settings.budget_goal = budget_goal
+    db.commit()
+    db.refresh(settings)
+    return settings
+
+
 def calculate_monthly_summary(db: Session, user_id: int, target_month: int, target_year: int) -> dict:
     total = db.query(func.coalesce(func.sum(models.Expense.amount), 0)).filter(
         models.Expense.user_id == user_id,

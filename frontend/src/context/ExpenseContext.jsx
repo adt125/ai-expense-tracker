@@ -13,7 +13,10 @@ const initialState = {
 
 export function ExpenseProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem("expense_token"));
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem("expense_user");
+    return saved ? JSON.parse(saved) : null;
+  });
   const [expenses, setExpenses] = useState([]);
   const [summary, setSummary] = useState(null);
   const [report, setReport] = useState(null);
@@ -21,13 +24,17 @@ export function ExpenseProvider({ children }) {
   useEffect(() => {
     if (token) {
       localStorage.setItem("expense_token", token);
+      if (currentUser) {
+        localStorage.setItem("expense_user", JSON.stringify(currentUser));
+      }
       fetchSummary();
       fetchExpenses();
       fetchReport();
     } else {
       localStorage.removeItem("expense_token");
+      localStorage.removeItem("expense_user");
     }
-  }, [token]);
+  }, [token, currentUser]);
 
   const login = async (email, password) => {
     const response = await api.post("/auth/login", {
@@ -35,7 +42,12 @@ export function ExpenseProvider({ children }) {
       password,
     });
     setToken(response.data.access_token);
-    setCurrentUser({ email });
+    const user = {
+      email: response.data.email,
+      full_name: response.data.full_name,
+    };
+    setCurrentUser(user);
+    localStorage.setItem("expense_user", JSON.stringify(user));
   };
 
   const register = async (payload) => {
@@ -49,6 +61,7 @@ export function ExpenseProvider({ children }) {
     setExpenses([]);
     setSummary(null);
     setReport(null);
+    localStorage.removeItem("expense_user");
   };
 
   const fetchExpenses = async () => {
@@ -87,6 +100,26 @@ export function ExpenseProvider({ children }) {
     await fetchReport();
   };
 
+  const updateExpense = async (expenseId, expenseData) => {
+    if (!token) return;
+    await api.put(`/expenses/${expenseId}`, expenseData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await fetchExpenses();
+    await fetchSummary();
+    await fetchReport();
+  };
+
+  const deleteExpense = async (expenseId) => {
+    if (!token) return;
+    await api.delete(`/expenses/${expenseId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await fetchExpenses();
+    await fetchSummary();
+    await fetchReport();
+  };
+
   return (
     <ExpenseContext.Provider
       value={{
@@ -100,6 +133,8 @@ export function ExpenseProvider({ children }) {
         register,
         logout,
         addExpense,
+        updateExpense,
+        deleteExpense,
       }}
     >
       {children}

@@ -14,6 +14,19 @@ class User(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     expenses = relationship("Expense", back_populates="owner", cascade="all, delete-orphan")
+    settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
+
+
+class UserSettings(Base):
+    __tablename__ = "user_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    budget_goal = Column(Numeric(10, 2), nullable=False, default=50000.0)
+    currency = Column(String(10), nullable=False, default="INR")
+    email_alerts = Column(String(20), nullable=False, default="enabled")
+
+    user = relationship("User", back_populates="settings")
 
 
 class Expense(Base):

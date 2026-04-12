@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import List
 
-from sklearn.linear_model import LinearRegression
+import numpy as np
 
 
 def predict_budget_warning(expense_points: List[dict], budget: float, month_days: int) -> dict:
@@ -12,14 +12,14 @@ def predict_budget_warning(expense_points: List[dict], budget: float, month_days
     y = []
     for point in expense_points:
         dt = date.fromisoformat(point["date"])
-        X.append([dt.day])
+        X.append(dt.day)
         y.append(point["amount"])
 
-    model = LinearRegression()
     try:
-        model.fit(X, y)
-        future_days = [[day] for day in range(1, month_days + 1)]
-        daily_pred = model.predict(future_days)
+        X = np.array(X).reshape(-1, 1)
+        y = np.array(y)
+        coeffs = np.polyfit(X.flatten(), y, 1)
+        daily_pred = np.polyval(coeffs, np.arange(1, month_days + 1))
         predicted_total = float(max(sum(daily_pred), 0))
     except Exception:
         average = sum(y) / len(y)

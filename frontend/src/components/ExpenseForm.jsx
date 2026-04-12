@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -21,16 +21,33 @@ const primaryTags = [
 const secondaryTags = ["Need", "Want", "Investment", "Savings", "Emergencies"];
 const paymentSources = ["Credit Card", "UPI", "Cash", "Debit Card", "Wallet"];
 
-export default function ExpenseForm() {
-  const { addExpense } = useContext(ExpenseContext);
-  const [form, setForm] = useState({
-    amount: "",
-    date: new Date().toISOString().slice(0, 10),
-    description: "",
-    primary_tag: "Food",
-    secondary_tag: "Need",
-    payment_source: "UPI",
-  });
+const defaultForm = () => ({
+  amount: "",
+  date: new Date().toISOString().slice(0, 10),
+  description: "",
+  primary_tag: "Food",
+  secondary_tag: "Need",
+  payment_source: "UPI",
+});
+
+export default function ExpenseForm({ selectedExpense, onClearSelection }) {
+  const { addExpense, updateExpense } = useContext(ExpenseContext);
+  const [form, setForm] = useState(defaultForm());
+
+  useEffect(() => {
+    if (selectedExpense) {
+      setForm({
+        amount: selectedExpense.amount,
+        date: selectedExpense.date,
+        description: selectedExpense.description || "",
+        primary_tag: selectedExpense.primary_tag,
+        secondary_tag: selectedExpense.secondary_tag,
+        payment_source: selectedExpense.payment_source,
+      });
+    } else {
+      setForm(defaultForm());
+    }
+  }, [selectedExpense]);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -38,14 +55,19 @@ export default function ExpenseForm() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    await addExpense(form);
-    setForm({ ...form, amount: "", description: "" });
+    if (selectedExpense) {
+      await updateExpense(selectedExpense.id, form);
+      onClearSelection();
+    } else {
+      await addExpense(form);
+    }
+    setForm(defaultForm());
   };
 
   return (
     <Paper elevation={3} sx={{ p: 4 }}>
       <Typography variant="h6" gutterBottom>
-        Add a new expense
+        {selectedExpense ? "Edit expense" : "Add a new expense"}
       </Typography>
       <Box component="form" onSubmit={handleSubmit} gap={2} display="grid">
         <TextField
@@ -112,9 +134,23 @@ export default function ExpenseForm() {
             </MenuItem>
           ))}
         </TextField>
-        <Button type="submit" variant="contained" size="large">
-          Save expense
-        </Button>
+        <Box display="flex" gap={2} flexWrap="wrap">
+          <Button type="submit" variant="contained" size="large">
+            {selectedExpense ? "Save changes" : "Save expense"}
+          </Button>
+          {selectedExpense && (
+            <Button
+              type="button"
+              variant="outlined"
+              onClick={() => {
+                onClearSelection();
+                setForm(defaultForm());
+              }}
+            >
+              Cancel edit
+            </Button>
+          )}
+        </Box>
       </Box>
     </Paper>
   );
