@@ -11,7 +11,7 @@ from ..services.excel_service import parse_expense_template
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
 
-@router.post("", response_model=schemas.ExpenseRead)
+@router.post("/create", response_model=schemas.ExpenseRead)
 def create_expense(
     expense: schemas.ExpenseCreate,
     current_user: models.User = Depends(get_current_user),
@@ -20,7 +20,7 @@ def create_expense(
     return crud.create_expense(db, current_user.id, expense)
 
 
-@router.get("", response_model=List[schemas.ExpenseRead])
+@router.get("/get_all_expenses", response_model=List[schemas.ExpenseRead])
 def list_expenses(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
@@ -30,7 +30,7 @@ def list_expenses(
     return crud.get_expenses(db, current_user.id, start_date, end_date)
 
 
-@router.put("/{expense_id}", response_model=schemas.ExpenseRead)
+@router.put("/update_by_id/{expense_id}", response_model=schemas.ExpenseRead)
 def update_expense(
     expense_id: int,
     expense_update: schemas.ExpenseUpdate,
@@ -43,7 +43,7 @@ def update_expense(
     return expense
 
 
-@router.delete("/{expense_id}")
+@router.delete("/delete_by_id/{expense_id}")
 def delete_expense(
     expense_id: int,
     current_user: models.User = Depends(get_current_user),

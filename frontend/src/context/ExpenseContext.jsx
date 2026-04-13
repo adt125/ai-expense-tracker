@@ -66,7 +66,7 @@ export function ExpenseProvider({ children }) {
 
   const fetchExpenses = async () => {
     if (!token) return;
-    const response = await api.get("/expenses", {
+    const response = await api.get("/expenses/get_all_expenses", {
       headers: { Authorization: `Bearer ${token}` },
     });
     setExpenses(response.data);
@@ -92,7 +92,7 @@ export function ExpenseProvider({ children }) {
 
   const addExpense = async (expenseData) => {
     if (!token) return;
-    await api.post("/expenses", expenseData, {
+    await api.post("/expenses/create", expenseData, {
       headers: { Authorization: `Bearer ${token}` },
     });
     await fetchExpenses();
@@ -102,7 +102,7 @@ export function ExpenseProvider({ children }) {
 
   const updateExpense = async (expenseId, expenseData) => {
     if (!token) return;
-    await api.put(`/expenses/${expenseId}`, expenseData, {
+    await api.put(`/expenses/update_by_id/${expenseId}`, expenseData, {
       headers: { Authorization: `Bearer ${token}` },
     });
     await fetchExpenses();
@@ -112,7 +112,7 @@ export function ExpenseProvider({ children }) {
 
   const deleteExpense = async (expenseId) => {
     if (!token) return;
-    await api.delete(`/expenses/${expenseId}`, {
+    await api.delete(`/expenses/delete_by_id/${expenseId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     await fetchExpenses();

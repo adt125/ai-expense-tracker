@@ -1,61 +1,168 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
-  CssBaseline,
-  Container,
-  Box,
-  Typography,
-  Paper,
-  Button,
   Avatar,
-  Stack,
+  Badge,
+  Box,
+  CssBaseline,
   Divider,
+  Drawer,
   IconButton,
-  Tooltip,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Stack,
+  Toolbar,
+  Typography,
+  useMediaQuery,
 } from "@mui/material";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
-import LightModeIcon from "@mui/icons-material/LightMode";
-import DarkModeIcon from "@mui/icons-material/DarkMode";
-import HomeIcon from "@mui/icons-material/Home";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import { ExpenseContext } from "./context/ExpenseContext";
+import { ThemeProvider, alpha, createTheme } from "@mui/material/styles";
+import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import TimelineRoundedIcon from "@mui/icons-material/TimelineRounded";
+import ReceiptLongRoundedIcon from "@mui/icons-material/ReceiptLongRounded";
+import SavingsRoundedIcon from "@mui/icons-material/SavingsRounded";
+import AccountBalanceWalletRoundedIcon from "@mui/icons-material/AccountBalanceWalletRounded";
+import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
+import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import AuthForm from "./components/AuthForm";
-import ExpenseForm from "./components/ExpenseForm";
 import Dashboard from "./components/Dashboard";
 import ReportCard from "./components/ReportCard";
-import RecentExpenses from "./components/RecentExpenses";
+import TransactionsView from "./components/TransactionsView";
+import BudgetsGoalsView from "./components/BudgetsGoalsView";
+import { ExpenseContext } from "./context/ExpenseContext";
+
+const drawerWidth = 248;
+
+const navigationItems = [
+  { key: "dashboard", label: "Dashboard", icon: <DashboardRoundedIcon /> },
+  { key: "analytics", label: "Analytics", icon: <TimelineRoundedIcon /> },
+  { key: "transactions", label: "Transactions", icon: <ReceiptLongRoundedIcon /> },
+  { key: "budgets", label: "Budgets & Goals", icon: <SavingsRoundedIcon /> },
+];
 
 function App() {
-  const { token, currentUser, logout, summary } = useContext(ExpenseContext);
-  const [view, setView] = useState("home");
-  const [mode, setMode] = useState("light");
+  const { token, currentUser, logout } = useContext(ExpenseContext);
+  const [view, setView] = useState("dashboard");
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [mode, setMode] = useState(() => localStorage.getItem("expense_theme_mode") || "light");
+  const isDesktop = useMediaQuery("(min-width:900px)");
+  const isDark = mode === "dark";
+
+  useEffect(() => {
+    localStorage.setItem("expense_theme_mode", mode);
+  }, [mode]);
 
   const theme = useMemo(
     () =>
       createTheme({
+        shape: { borderRadius: 12 },
         palette: {
           mode,
-          primary: {
-            main: "#1976d2",
-          },
-          secondary: {
-            main: "#ff9800",
-          },
+          primary: { main: "#6366F1" },
+          secondary: { main: "#10B981" },
+          error: { main: "#F43F5E" },
+          warning: { main: "#F59E0B" },
+          info: { main: "#0F766E" },
           background: {
-            default: mode === "light" ? "#f4f6fb" : "#101820",
-            paper: mode === "light" ? "#ffffff" : "#16202c",
+            default: isDark ? "#020617" : "#F8FAFC",
+            paper: isDark ? "#0F172A" : "#FFFFFF",
           },
-        },
-        shape: {
-          borderRadius: 20,
+          text: {
+            primary: isDark ? "#E2E8F0" : "#0F172A",
+            secondary: isDark ? "#94A3B8" : "#475569",
+          },
+          divider: isDark ? "#1E293B" : "#E2E8F0",
         },
         typography: {
-          fontFamily: "Inter, Roboto, Arial, sans-serif",
+          fontFamily: '"Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif',
+          h3: { fontWeight: 700, letterSpacing: "-0.04em" },
+          h4: { fontWeight: 700, letterSpacing: "-0.04em" },
+          h5: { fontWeight: 700 },
+          h6: { fontWeight: 700 },
+          button: { fontWeight: 600, textTransform: "none" },
+        },
+        components: {
+          MuiCssBaseline: {
+            styleOverrides: {
+              body: {
+                background: isDark
+                  ? "radial-gradient(circle at top, rgba(99,102,241,0.16), transparent 28%), #020617"
+                  : "radial-gradient(circle at top, rgba(99,102,241,0.08), transparent 28%), #F8FAFC",
+              },
+            },
+          },
+          MuiDrawer: {
+            styleOverrides: {
+              paper: {
+                borderRight: `1px solid ${isDark ? "#1E293B" : "#E2E8F0"}`,
+                backgroundColor: isDark ? "#020617" : "#F8FAFC",
+              },
+            },
+          },
+          MuiPaper: {
+            defaultProps: { elevation: 0 },
+            styleOverrides: {
+              root: {
+                border: `1px solid ${isDark ? "#1E293B" : "#E2E8F0"}`,
+                backgroundImage: "none",
+                boxShadow: isDark
+                  ? "0 18px 40px rgba(2, 6, 23, 0.55)"
+                  : "0 10px 30px rgba(15, 23, 42, 0.05)",
+              },
+            },
+          },
+          MuiButton: {
+            defaultProps: { disableElevation: true },
+            styleOverrides: {
+              root: {
+                borderRadius: 12,
+                paddingInline: 16,
+              },
+            },
+          },
+          MuiOutlinedInput: {
+            styleOverrides: {
+              root: {
+                backgroundColor: isDark ? "#0B1220" : "#FFFFFF",
+              },
+            },
+          },
+          MuiInputBase: {
+            styleOverrides: {
+              input: {
+                color: isDark ? "#E2E8F0" : "#0F172A",
+              },
+            },
+          },
+          MuiChip: {
+            styleOverrides: {
+              root: {
+                borderColor: isDark ? "#334155" : undefined,
+              },
+            },
+          },
+          MuiListItemButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: 12,
+                marginBottom: 6,
+                "&.Mui-selected": {
+                  backgroundColor: "#0F766E",
+                  color: "#FFFFFF",
+                  "& .MuiListItemIcon-root": {
+                    color: "#FFFFFF",
+                  },
+                },
+              },
+            },
+          },
         },
       }),
-    [mode],
+    [isDark, mode],
   );
 
   const displayName = currentUser?.full_name || currentUser?.email || "User";
@@ -66,219 +173,197 @@ function App() {
     .slice(0, 2)
     .join("");
 
-  const renderHomeCards = () => (
-    <Box display="grid" gap={3}>
-      <Paper
-        elevation={4}
-        sx={{
-          p: 3,
-          bgcolor: "primary.main",
-          color: "primary.contrastText",
-          minHeight: 150,
-        }}
-      >
-        <Typography variant="overline">Combined spend</Typography>
-        <Typography variant="h3" sx={{ mt: 1 }}>
-          ₹{summary?.monthly_total?.toFixed(2) ?? "0.00"}
-        </Typography>
-        <Typography variant="body2" sx={{ opacity: 0.85, mt: 1 }}>
-          This month’s total expenses across categories.
-        </Typography>
-      </Paper>
-      <Paper elevation={4} sx={{ p: 3, minHeight: 150 }}>
-        <Typography variant="overline" color="text.secondary">
-          Projected spend
-        </Typography>
-        <Typography variant="h3" sx={{ mt: 1 }}>
-          ₹{summary?.predicted_total?.toFixed(2) ?? "0.00"}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {summary?.forecast_available
-            ? `Days remaining: ${summary.days_remaining}`
-            : "Forecast available after 7 days of activity."}
-        </Typography>
-      </Paper>
-      <Paper elevation={4} sx={{ p: 3, display: "grid", gap: 1 }}>
-        <Typography variant="overline" color="text.secondary">
-          Fast insights
-        </Typography>
-        <Typography>
-          Use the buttons on the left to switch between your dashboard,
-          analysis, and expense entry.
-        </Typography>
-      </Paper>
-    </Box>
-  );
+  const handleNavigate = (nextView) => {
+    setView(nextView);
+    setMobileOpen(false);
+  };
 
-  const renderPage = () => {
-    switch (view) {
-      case "dashboard":
-        return <Dashboard />;
-      case "analyse":
-        return <ReportCard />;
-      case "add":
-        return (
-          <ExpenseForm
-            selectedExpense={selectedExpense}
-            onClearSelection={() => setSelectedExpense(null)}
-          />
-        );
-      default:
-        return (
-          <Paper elevation={4} sx={{ p: 4, borderRadius: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              Home summary
-            </Typography>
-            <Typography variant="body1" color="text.secondary" mb={3}>
-              Quick look at your spend performance, projections, and recent
-              activity.
-            </Typography>
-            {renderHomeCards()}
-          </Paper>
-        );
+  const handleEditExpense = (expense) => {
+    setSelectedExpense(expense);
+    setView("dashboard");
+    setMobileOpen(false);
+  };
+
+  const handleExpenseSaved = (mode) => {
+    if (mode === "edit") {
+      setSelectedExpense(null);
+      setView("transactions");
     }
   };
+
+  const renderPage = () => {
+    if (view === "analytics") {
+      return <ReportCard />;
+    }
+    if (view === "transactions") {
+      return (
+        <TransactionsView
+          onEditExpense={handleEditExpense}
+        />
+      );
+    }
+    if (view === "budgets") {
+      return <BudgetsGoalsView />;
+    }
+
+    return (
+      <Dashboard
+        selectedExpense={selectedExpense}
+        onClearSelection={() => setSelectedExpense(null)}
+        onExpenseSaved={handleExpenseSaved}
+        onViewAllTransactions={() => handleNavigate("transactions")}
+      />
+    );
+  };
+
+  const drawerContent = (
+    <Box sx={{ height: "100%", px: 2, py: 2.5, display: "flex", flexDirection: "column" }}>
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 1, mb: 4 }}>
+        <Box
+          sx={{
+            width: 38,
+            height: 38,
+            borderRadius: 2,
+            display: "grid",
+            placeItems: "center",
+            color: "#FFFFFF",
+            background: "linear-gradient(180deg, #0F766E 0%, #115E59 100%)",
+          }}
+        >
+          <AccountBalanceWalletRoundedIcon fontSize="small" />
+        </Box>
+        <Typography variant="h6">Expenso</Typography>
+      </Stack>
+
+      <List disablePadding>
+        {navigationItems.map((item) => (
+          <ListItemButton
+            key={item.key}
+            selected={view === item.key}
+            onClick={() => handleNavigate(item.key)}
+          >
+            <ListItemIcon sx={{ minWidth: 38, color: "inherit" }}>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItemButton>
+        ))}
+      </List>
+
+      <Box sx={{ flexGrow: 1 }} />
+
+      <Divider sx={{ my: 2 }} />
+
+      <List disablePadding>
+        <ListItemButton onClick={logout}>
+          <ListItemIcon sx={{ minWidth: 38 }}>
+            <SettingsRoundedIcon />
+          </ListItemIcon>
+          <ListItemText primary="Logout" secondary="Sign out safely" />
+        </ListItemButton>
+      </List>
+    </Box>
+  );
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Paper
-          elevation={4}
+      {!token ? (
+        <Box
           sx={{
-            p: 3,
-            mb: 4,
-            background:
-              mode === "light"
-                ? "linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%)"
-                : "linear-gradient(135deg, #0f1729 0%, #1f2937 100%)",
+            minHeight: "100vh",
+            display: "grid",
+            placeItems: "center",
+            px: 2,
+            py: 4,
           }}
         >
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            flexWrap="wrap"
+          <Box sx={{ width: "100%", maxWidth: 1100 }}>
+            <AuthForm />
+          </Box>
+        </Box>
+      ) : (
+        <Box sx={{ display: "flex", minHeight: "100vh" }}>
+          <Drawer
+            variant={isDesktop ? "permanent" : "temporary"}
+            open={isDesktop ? true : mobileOpen}
+            onClose={() => setMobileOpen(false)}
+            ModalProps={{ keepMounted: true }}
+            sx={{
+              width: drawerWidth,
+              flexShrink: 0,
+              "& .MuiDrawer-paper": {
+                width: drawerWidth,
+                boxSizing: "border-box",
+              },
+            }}
           >
-            <Box>
-              <Typography variant="h4" component="h1" gutterBottom>
-                Expense Tracker
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Track spending, forecast budgets, and view recent activity.
-              </Typography>
-            </Box>
-            <Box display="flex" alignItems="center" gap={1}>
-              {token && (
-                <Tooltip
-                  title={
-                    mode === "light"
-                      ? "Switch to dark mode"
-                      : "Switch to light mode"
-                  }
-                >
-                  <IconButton
-                    onClick={() =>
-                      setMode((prev) => (prev === "light" ? "dark" : "light"))
-                    }
-                    color="inherit"
-                  >
-                    {mode === "light" ? <DarkModeIcon /> : <LightModeIcon />}
+            {drawerContent}
+          </Drawer>
+
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Toolbar
+              disableGutters
+              sx={{
+                px: { xs: 2, md: 4 },
+                py: 3,
+                minHeight: "unset",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={2}>
+                {!isDesktop && (
+                  <IconButton onClick={() => setMobileOpen(true)}>
+                    <MenuRoundedIcon />
                   </IconButton>
-                </Tooltip>
-              )}
-              {token && (
-                <Button variant="outlined" onClick={logout}>
-                  Logout
-                </Button>
-              )}
-            </Box>
-          </Box>
-        </Paper>
-
-        {!token ? (
-          <AuthForm />
-        ) : (
-          <Box
-            display="flex"
-            gap={3}
-            flexDirection={{ xs: "column", md: "row" }}
-            alignItems={{ xs: "stretch", md: "flex-start" }}
-          >
-            <Box sx={{ width: { xs: "100%", md: 320 }, flexShrink: 0 }}>
-              <Paper elevation={4} sx={{ p: 3, mb: 3 }}>
-                <Box display="flex" alignItems="center" gap={2} mb={2}>
-                  <Avatar
-                    sx={{ bgcolor: "secondary.main", width: 64, height: 64 }}
-                  >
-                    {initials}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="h6">{displayName}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {currentUser?.email}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Divider sx={{ mb: 2 }} />
-                <Stack spacing={1}>
-                  {[
-                    { label: "Home", key: "home", icon: <HomeIcon /> },
-                    {
-                      label: "Dashboard",
-                      key: "dashboard",
-                      icon: <DashboardIcon />,
-                    },
-                    {
-                      label: "Analyse",
-                      key: "analyse",
-                      icon: <AnalyticsIcon />,
-                    },
-                    {
-                      label: "Add new",
-                      key: "add",
-                      icon: <AddCircleIcon />,
-                    },
-                  ].map((item) => (
-                    <Button
-                      key={item.key}
-                      variant={view === item.key ? "contained" : "outlined"}
-                      color={view === item.key ? "primary" : "inherit"}
-                      fullWidth
-                      startIcon={item.icon}
-                      sx={{
-                        textTransform: "none",
-                        justifyContent: "flex-start",
-                      }}
-                      onClick={() => {
-                        setView(item.key);
-                        if (item.key === "add") {
-                          setSelectedExpense(null);
-                        }
-                      }}
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </Stack>
-              </Paper>
-            </Box>
-
-            <Box sx={{ flex: 1, minWidth: 0 }}>{renderPage()}</Box>
-
-            {view === "home" && (
-              <Box sx={{ width: { xs: "100%", md: 320 }, flexShrink: 0 }}>
-                <Paper elevation={4} sx={{ p: 3, mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Recent expenses
+                )}
+                <Box>
+                  <Typography variant="h4">
+                    {navigationItems.find((item) => item.key === view)?.label || "Dashboard"}
                   </Typography>
-                  <RecentExpenses />
-                </Paper>
-              </Box>
-            )}
+                  <Typography variant="body2" color="text.secondary">
+                    A focused finance workspace for tracking, reviewing, and planning.
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <IconButton
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    bgcolor: "background.paper",
+                  }}
+                  onClick={() => setMode((current) => (current === "light" ? "dark" : "light"))}
+                >
+                  {isDark ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}
+                </IconButton>
+                <IconButton
+                  sx={{
+                    border: "1px solid",
+                    borderColor: "divider",
+                    bgcolor: "background.paper",
+                  }}
+                >
+                  <Badge color="error" variant="dot">
+                    <NotificationsNoneRoundedIcon />
+                  </Badge>
+                </IconButton>
+                <Avatar
+                  sx={{
+                    bgcolor: alpha("#0F766E", 0.95),
+                    color: "#FFFFFF",
+                    fontWeight: 700,
+                  }}
+                >
+                  {initials}
+                </Avatar>
+              </Stack>
+            </Toolbar>
+
+            <Box sx={{ px: { xs: 2, md: 4 }, pb: 4 }}>{renderPage()}</Box>
           </Box>
-        )}
-      </Container>
+        </Box>
+      )}
     </ThemeProvider>
   );
 }

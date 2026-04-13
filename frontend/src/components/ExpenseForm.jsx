@@ -1,16 +1,21 @@
-import { useState, useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Box,
-  Paper,
-  TextField,
-  MenuItem,
   Button,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Paper,
+  Stack,
+  TextField,
   Typography,
 } from "@mui/material";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 const primaryTags = [
   "Food",
+  "Groceries",
   "Fuel",
   "Rent",
   "Shopping",
@@ -18,8 +23,8 @@ const primaryTags = [
   "Health",
   "Travel",
 ];
-const secondaryTags = ["Need", "Want", "Investment", "Savings", "Emergencies"];
-const paymentSources = ["Credit Card", "UPI", "Cash", "Debit Card", "Wallet"];
+const secondaryTags = ["Need", "Want", "Investment"];
+const paymentSources = ["UPI", "Credit Card", "Debit Card", "Cash", "Wallet"];
 
 const defaultForm = () => ({
   amount: "",
@@ -30,9 +35,15 @@ const defaultForm = () => ({
   payment_source: "UPI",
 });
 
-export default function ExpenseForm({ selectedExpense, onClearSelection }) {
+export default function ExpenseForm({
+  compact = false,
+  selectedExpense,
+  onClearSelection,
+  onSubmitSuccess,
+}) {
   const { addExpense, updateExpense } = useContext(ExpenseContext);
   const [form, setForm] = useState(defaultForm());
+  const [dateInput, setDateInput] = useState(null);
 
   useEffect(() => {
     if (selectedExpense) {
@@ -44,113 +55,154 @@ export default function ExpenseForm({ selectedExpense, onClearSelection }) {
         secondary_tag: selectedExpense.secondary_tag,
         payment_source: selectedExpense.payment_source,
       });
-    } else {
-      setForm(defaultForm());
+      return;
     }
+
+    setForm(defaultForm());
   }, [selectedExpense]);
 
   const handleChange = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     if (selectedExpense) {
       await updateExpense(selectedExpense.id, form);
-      onClearSelection();
+      onClearSelection?.();
+      onSubmitSuccess?.("edit");
     } else {
       await addExpense(form);
+      onSubmitSuccess?.("create");
     }
+
     setForm(defaultForm());
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 4 }}>
+    <Paper sx={{ p: 3, height: "100%" }}>
       <Typography variant="h6" gutterBottom>
-        {selectedExpense ? "Edit expense" : "Add a new expense"}
+        {selectedExpense ? "Edit Expense" : "Quick Add Expense"}
       </Typography>
-      <Box component="form" onSubmit={handleSubmit} gap={2} display="grid">
-        <TextField
-          label="Amount"
-          name="amount"
-          type="number"
-          inputProps={{ step: "0.01" }}
-          value={form.amount}
-          onChange={handleChange}
-          required
-        />
-        <TextField
-          label="Date"
-          name="date"
-          type="date"
-          value={form.date}
-          onChange={handleChange}
-          InputLabelProps={{ shrink: true }}
-          required
-        />
-        <TextField
-          label="Description"
-          name="description"
-          value={form.description}
-          onChange={handleChange}
-          fullWidth
-        />
-        <TextField
-          select
-          label="Primary Tag"
-          name="primary_tag"
-          value={form.primary_tag}
-          onChange={handleChange}
-        >
-          {primaryTags.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          label="Secondary Tag"
-          name="secondary_tag"
-          value={form.secondary_tag}
-          onChange={handleChange}
-        >
-          {secondaryTags.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          label="Payment Source"
-          name="payment_source"
-          value={form.payment_source}
-          onChange={handleChange}
-        >
-          {paymentSources.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}
-            </MenuItem>
-          ))}
-        </TextField>
-        <Box display="flex" gap={2} flexWrap="wrap">
-          <Button type="submit" variant="contained" size="large">
-            {selectedExpense ? "Save changes" : "Save expense"}
+
+      <Box component="form" onSubmit={handleSubmit}>
+        <Stack spacing={1.5}>
+          <TextField
+            label="Amount"
+            name="amount"
+            type="number"
+            inputProps={{ step: "0.01", min: "0" }}
+            value={form.amount}
+            onChange={handleChange}
+            required
+            fullWidth
+          />
+
+          <TextField
+            select
+            label="Category"
+            name="primary_tag"
+            value={form.primary_tag}
+            onChange={handleChange}
+            fullWidth
+          >
+            {primaryTags.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            label="Date"
+            name="date"
+            type="date"
+            inputRef={setDateInput}
+            value={form.date}
+            onChange={handleChange}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    size="small"
+                    onClick={() => dateInput?.showPicker?.()}
+                  >
+                    <CalendarMonthRoundedIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            fullWidth
+            required
+          />
+
+          <TextField
+            label="Description"
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="What was this expense for?"
+            multiline={compact}
+            minRows={compact ? 2 : 1}
+            fullWidth
+          />
+
+          <TextField
+            select
+            label="Secondary Tag"
+            name="secondary_tag"
+            value={form.secondary_tag}
+            onChange={handleChange}
+            fullWidth
+          >
+            {secondaryTags.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            label="Payment Source"
+            name="payment_source"
+            value={form.payment_source}
+            onChange={handleChange}
+            fullWidth
+          >
+            {paymentSources.map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            sx={{
+              mt: 1,
+              py: 1.2,
+              background: "linear-gradient(135deg, #FF7A59 0%, #FB4D72 100%)",
+              "&:hover": {
+                background: "linear-gradient(135deg, #F97316 0%, #F43F5E 100%)",
+              },
+            }}
+          >
+            {selectedExpense ? "Save Changes" : "Log Expense"}
           </Button>
+
           {selectedExpense && (
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => {
-                onClearSelection();
-                setForm(defaultForm());
-              }}
-            >
-              Cancel edit
+            <Button variant="text" onClick={() => onClearSelection?.()}>
+              Cancel editing
             </Button>
           )}
-        </Box>
+        </Stack>
       </Box>
     </Paper>
   );
