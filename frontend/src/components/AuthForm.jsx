@@ -1,5 +1,7 @@
 import { useContext, useState } from "react";
 import {
+  Alert,
+  AlertTitle,
   Box,
   Button,
   Paper,
@@ -19,19 +21,45 @@ export default function AuthForm() {
   const { login, register } = useContext(ExpenseContext);
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState(defaultValues);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (event) => {
+    if (errorMessage) {
+      setErrorMessage("");
+    }
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  };
+
+  const getErrorMessage = (error) => {
+    const detail = error?.response?.data?.detail;
+
+    if (typeof detail === "string" && detail.trim()) {
+      return detail;
+    }
+
+    if (Array.isArray(detail) && detail.length > 0) {
+      return detail[0]?.msg || "Something went wrong. Please try again.";
+    }
+
+    return mode === "login"
+      ? "Login failed. Please check your email and password and try again."
+      : "Registration failed. Please review your details and try again.";
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (mode === "login") {
-      await login(form.email, form.password);
-      return;
-    }
+    setErrorMessage("");
 
-    await register(form);
+    try {
+      if (mode === "login") {
+        await login(form.email, form.password);
+        return;
+      }
+
+      await register(form);
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    }
   };
 
   return (
@@ -104,6 +132,13 @@ export default function AuthForm() {
               <ToggleButton value="register">Register</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
+
+          {errorMessage && (
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 3 }}>
+              <AlertTitle>{mode === "login" ? "Login failed" : "Registration failed"}</AlertTitle>
+              {errorMessage}
+            </Alert>
+          )}
 
           <Box component="form" onSubmit={handleSubmit}>
             <Stack spacing={2}>

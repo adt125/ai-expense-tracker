@@ -1,11 +1,27 @@
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from typing import List, Optional
 
 from sqlalchemy import func, extract
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from .. import models, schemas
+
+def create_expense(db: Session, user_id: int, expense: schemas.ExpenseCreate) -> models.Expense:
+    db_expense = models.Expense(
+        user_id=user_id,
+        amount=Decimal(str(expense.amount)),
+        date=expense.date,
+        description=expense.description,
+        primary_tag=expense.primary_tag,
+        secondary_tag=expense.secondary_tag,
+        payment_source=expense.payment_source,
+    )
+    db.add(db_expense)
+    db.commit()
+    db.refresh(db_expense)
+    return db_expense
+
 
 def get_expenses(db: Session, user_id: int, start_date: Optional[date] = None, end_date: Optional[date] = None) -> List[models.Expense]:
     query = db.query(models.Expense).filter(models.Expense.user_id == user_id)
@@ -46,24 +62,6 @@ def delete_expense(db: Session, user_id: int, expense_id: int) -> bool:
     db.delete(expense)
     db.commit()
     return True
-
-
-def get_or_create_user_settings(db: Session, user_id: int) -> models.UserSettings:
-    settings = db.query(models.UserSettings).filter(models.UserSettings.user_id == user_id).first()
-    if not settings:
-        settings = models.UserSettings(user_id=user_id, budget_goal=50000.0)
-        db.add(settings)
-        db.commit()
-        db.refresh(settings)
-    return settings
-
-
-def update_user_settings(db: Session, user_id: int, budget_goal: float) -> models.UserSettings:
-    settings = get_or_create_user_settings(db, user_id)
-    settings.budget_goal = budget_goal
-    db.commit()
-    db.refresh(settings)
-    return settings
 
 
 def calculate_monthly_summary(db: Session, user_id: int, target_month: int, target_year: int) -> dict:

@@ -39,7 +39,11 @@ const drawerWidth = 248;
 const navigationItems = [
   { key: "dashboard", label: "Dashboard", icon: <DashboardRoundedIcon /> },
   { key: "analytics", label: "Analytics", icon: <TimelineRoundedIcon /> },
-  { key: "transactions", label: "Transactions", icon: <ReceiptLongRoundedIcon /> },
+  {
+    key: "transactions",
+    label: "Transactions",
+    icon: <ReceiptLongRoundedIcon />,
+  },
   { key: "budgets", label: "Budgets & Goals", icon: <SavingsRoundedIcon /> },
 ];
 
@@ -48,7 +52,9 @@ function App() {
   const [view, setView] = useState("dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
-  const [mode, setMode] = useState(() => localStorage.getItem("expense_theme_mode") || "light");
+  const [mode, setMode] = useState(
+    () => localStorage.getItem("expense_theme_mode") || "light",
+  );
   const isDesktop = useMediaQuery("(min-width:900px)");
   const isDark = mode === "dark";
 
@@ -79,11 +85,22 @@ function App() {
         },
         typography: {
           fontFamily: '"Plus Jakarta Sans", "Inter", "Segoe UI", sans-serif',
-          h3: { fontWeight: 700, letterSpacing: "-0.04em" },
-          h4: { fontWeight: 700, letterSpacing: "-0.04em" },
-          h5: { fontWeight: 700 },
-          h6: { fontWeight: 700 },
-          button: { fontWeight: 600, textTransform: "none" },
+          fontSize: 14,
+          h3: {
+            fontWeight: 700,
+            letterSpacing: "-0.04em",
+            fontSize: "1.65rem",
+          },
+          h4: { fontWeight: 700, letterSpacing: "-0.04em", fontSize: "2rem" },
+          h5: { fontWeight: 700, fontSize: "1.2rem" },
+          h6: { fontWeight: 700, fontSize: "1rem" },
+          body1: { fontSize: "0.95rem" },
+          body2: { fontSize: "0.95rem" },
+          button: {
+            fontWeight: 600,
+            textTransform: "none",
+            fontSize: "0.9rem",
+          },
         },
         components: {
           MuiCssBaseline: {
@@ -196,11 +213,7 @@ function App() {
       return <ReportCard />;
     }
     if (view === "transactions") {
-      return (
-        <TransactionsView
-          onEditExpense={handleEditExpense}
-        />
-      );
+      return <TransactionsView onEditExpense={handleEditExpense} />;
     }
     if (view === "budgets") {
       return <BudgetsGoalsView />;
@@ -217,8 +230,21 @@ function App() {
   };
 
   const drawerContent = (
-    <Box sx={{ height: "100%", px: 2, py: 2.5, display: "flex", flexDirection: "column" }}>
-      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 1, mb: 4 }}>
+    <Box
+      sx={{
+        height: "100%",
+        px: 2,
+        py: 2.5,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={1.5}
+        sx={{ px: 1, mb: 4 }}
+      >
         <Box
           sx={{
             width: 38,
@@ -241,9 +267,15 @@ function App() {
             key={item.key}
             selected={view === item.key}
             onClick={() => handleNavigate(item.key)}
+            sx={{ py: 1.2 }}
           >
-            <ListItemIcon sx={{ minWidth: 38, color: "inherit" }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
+            <ListItemIcon sx={{ minWidth: 38, color: "inherit" }}>
+              {item.icon}
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              primaryTypographyProps={{ fontSize: "0.92rem" }}
+            />
           </ListItemButton>
         ))}
       </List>
@@ -253,11 +285,16 @@ function App() {
       <Divider sx={{ my: 2 }} />
 
       <List disablePadding>
-        <ListItemButton onClick={logout}>
+        <ListItemButton onClick={logout} sx={{ py: 1.2 }}>
           <ListItemIcon sx={{ minWidth: 38 }}>
             <SettingsRoundedIcon />
           </ListItemIcon>
-          <ListItemText primary="Logout" secondary="Sign out safely" />
+          <ListItemText
+            primary="Logout"
+            secondary="Sign out safely"
+            primaryTypographyProps={{ fontSize: "0.92rem" }}
+            secondaryTypographyProps={{ fontSize: "0.78rem" }}
+          />
         </ListItemButton>
       </List>
     </Box>
@@ -318,10 +355,12 @@ function App() {
                 )}
                 <Box>
                   <Typography variant="h4">
-                    {navigationItems.find((item) => item.key === view)?.label || "Dashboard"}
+                    {navigationItems.find((item) => item.key === view)?.label ||
+                      "Dashboard"}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    A focused finance workspace for tracking, reviewing, and planning.
+                    A focused finance workspace for tracking, reviewing, and
+                    planning.
                   </Typography>
                 </Box>
               </Stack>
@@ -333,7 +372,11 @@ function App() {
                     borderColor: "divider",
                     bgcolor: "background.paper",
                   }}
-                  onClick={() => setMode((current) => (current === "light" ? "dark" : "light"))}
+                  onClick={() =>
+                    setMode((current) =>
+                      current === "light" ? "dark" : "light",
+                    )
+                  }
                 >
                   {isDark ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}
                 </IconButton>

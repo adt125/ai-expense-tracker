@@ -4,7 +4,8 @@ from typing import Optional
 
 from .email_service import send_email
 from .forecast import build_expense_points, predict_budget_warning
-from .. import crud
+from .expense_service import get_expenses
+from .user_service import get_or_create_user_settings
 
 
 class SummaryService:
@@ -20,7 +21,7 @@ class SummaryService:
         self.db = db
         self.user_id = user_id
         self.user_email = user_email
-        self.settings = crud.get_or_create_user_settings(db, user_id)
+        self.settings = get_or_create_user_settings(db, user_id)
         self.budget = budget if budget is not None else float(self.settings.budget_goal)
         self.today = date.today()
         self.target_month = month or self.today.month
@@ -28,7 +29,7 @@ class SummaryService:
         self.month_days = calendar.monthrange(self.target_year, self.target_month)[1]
 
     def build(self) -> dict:
-        expenses = crud.get_expenses(self.db, self.user_id)
+        expenses = get_expenses(self.db, self.user_id)
         monthly_expenses = self._monthly_expenses(expenses)
         monthly_total = self._monthly_total(monthly_expenses)
         points = build_expense_points(monthly_expenses)

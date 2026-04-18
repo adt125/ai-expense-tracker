@@ -3,8 +3,8 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
-
-from .. import crud, models, schemas
+from ..services import expense_service
+from .. import models, schemas
 from ..dependencies import get_current_user, get_db
 from ..services.excel_service import parse_expense_template
 
@@ -17,7 +17,7 @@ def create_expense(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return crud.create_expense(db, current_user.id, expense)
+    return expense_service.create_expense(db, current_user.id, expense)
 
 
 @router.get("/get_all_expenses", response_model=List[schemas.ExpenseRead])
@@ -27,7 +27,7 @@ def list_expenses(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return crud.get_expenses(db, current_user.id, start_date, end_date)
+    return expense_service.get_expenses(db, current_user.id, start_date, end_date)
 
 
 @router.put("/update_by_id/{expense_id}", response_model=schemas.ExpenseRead)
@@ -37,7 +37,7 @@ def update_expense(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    expense = crud.update_expense(db, current_user.id, expense_id, expense_update)
+    expense = expense_service.update_expense(db, current_user.id, expense_id, expense_update)
     if not expense:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
     return expense
@@ -49,7 +49,7 @@ def delete_expense(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    deleted = crud.delete_expense(db, current_user.id, expense_id)
+    deleted = expense_service.delete_expense(db, current_user.id, expense_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
     return {"detail": "Expense deleted"}
@@ -76,7 +76,7 @@ def upload_expenses(
     imported = 0
     for row in rows:
         expense = schemas.ExpenseCreate(**row)
-        crud.create_expense(db, current_user.id, expense)
+        expense_service.create_expense(db, current_user.id, expense)
         imported += 1
 
     return {"imported": imported, "message": f"Imported {imported} expenses."}

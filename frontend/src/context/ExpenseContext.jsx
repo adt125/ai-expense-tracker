@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import api from "../services/api";
+import { encryptPassword } from "../services/authCrypto";
 
 export const ExpenseContext = createContext(null);
 
@@ -37,9 +38,10 @@ export function ExpenseProvider({ children }) {
   }, [token, currentUser]);
 
   const login = async (email, password) => {
+    const encryptedPassword = await encryptPassword(password);
     const response = await api.post("/auth/login", {
       username: email,
-      password,
+      password: encryptedPassword,
     });
     setToken(response.data.access_token);
     const user = {
@@ -51,7 +53,11 @@ export function ExpenseProvider({ children }) {
   };
 
   const register = async (payload) => {
-    await api.post("/auth/register", payload);
+    const encryptedPassword = await encryptPassword(payload.password);
+    await api.post("/auth/register", {
+      ...payload,
+      password: encryptedPassword,
+    });
     await login(payload.email, payload.password);
   };
 
