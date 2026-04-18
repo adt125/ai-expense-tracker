@@ -26,11 +26,17 @@ def register(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=schemas.UserToken)
-def login(user_credentials: schemas.UserLogin = Body(...), db: Session = Depends(get_db)):
+def login(
+    user_credentials: schemas.UserLogin = Body(...), db: Session = Depends(get_db)
+):
     resolved_password = decrypt_client_secret(user_credentials.password)
-    user = user_service.authenticate_user(db, user_credentials.username, resolved_password)
+    user = user_service.authenticate_user(
+        db, user_credentials.username, resolved_password
+    )
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        )
     access_token = auth_service.create_access_token(data={"sub": user.email})
     return {
         "access_token": access_token,

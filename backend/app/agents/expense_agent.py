@@ -1,8 +1,9 @@
 from google.adk.agents import LlmAgent
+from .agent_tools import get_expense_data
 
 expense_analysis_agent = LlmAgent(
-    model='gemini-flash-latest',
-    name='expense_analysis_agent',
+    model="gemini-flash-latest",
+    name="expense_analysis_agent",
     description="An AI agent specialized in analyzing user expenses, providing reports, suggestions for improvement, and answering questions about financial data.",
     instruction="""You are an intelligent Expense Analysis Agent designed to help users understand and optimize their spending habits. Your primary responsibilities are:
 
@@ -38,4 +39,5 @@ expense_analysis_agent = LlmAgent(
 - For questions: Provide direct, informative answers with examples when helpful
 
 Remember, your goal is to help users gain better control over their finances through data-driven insights and practical advice.""",
+    tools=[get_expense_data],
 )
