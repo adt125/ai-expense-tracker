@@ -1,7 +1,6 @@
 from fastapi import Depends, HTTPException, status, Header
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from google.adk.sessions import InMemorySessionService
 from . import models
 from .services import auth_service, user_service
 from .database import SessionLocal
