@@ -31,9 +31,9 @@ def login(
     user_credentials: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-    # resolved_password = decrypt_client_secret(user_credentials.password)
+    resolved_password = decrypt_client_secret(user_credentials.password)
     user = user_service.authenticate_user(
-        db, user_credentials.username, user_credentials.password
+        db, user_credentials.username, resolved_password
     )
     if not user:
         raise HTTPException(

@@ -300,6 +300,22 @@ function App() {
     </Box>
   );
 
+  const themeToggleButton = (
+    <IconButton
+      sx={{
+        border: "1px solid",
+        borderColor: "divider",
+        bgcolor: "background.paper",
+      }}
+      onClick={() =>
+        setMode((current) => (current === "light" ? "dark" : "light"))
+      }
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {isDark ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}
+    </IconButton>
+  );
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -311,8 +327,12 @@ function App() {
             placeItems: "center",
             px: 2,
             py: 4,
+            position: "relative",
           }}
         >
+          <Box sx={{ position: "absolute", top: 24, right: 24 }}>
+            {themeToggleButton}
+          </Box>
           <Box sx={{ width: "100%", maxWidth: 1100 }}>
             <AuthForm />
           </Box>
@@ -366,20 +386,7 @@ function App() {
               </Stack>
 
               <Stack direction="row" alignItems="center" spacing={1.5}>
-                <IconButton
-                  sx={{
-                    border: "1px solid",
-                    borderColor: "divider",
-                    bgcolor: "background.paper",
-                  }}
-                  onClick={() =>
-                    setMode((current) =>
-                      current === "light" ? "dark" : "light",
-                    )
-                  }
-                >
-                  {isDark ? <LightModeRoundedIcon /> : <DarkModeRoundedIcon />}
-                </IconButton>
+                {themeToggleButton}
                 <IconButton
                   sx={{
                     border: "1px solid",

@@ -21,6 +21,8 @@ import ShoppingBagRoundedIcon from "@mui/icons-material/ShoppingBagRounded";
 import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import { alpha, useTheme } from "@mui/material/styles";
 import {
+  Area,
+  AreaChart,
   Cell,
   Pie,
   PieChart,
@@ -72,6 +74,55 @@ function buildCategoryTotals(expenses) {
     .sort((first, second) => second.value - first.value);
 }
 
+function buildCashFlowData(expenses) {
+  const grouped = new Map();
+
+  expenses.forEach((expense) => {
+    const monthLabel = new Intl.DateTimeFormat("en", {
+      month: "short",
+    }).format(new Date(expense.date));
+    const current = grouped.get(monthLabel) || { expenses: 0 };
+    grouped.set(monthLabel, {
+      expenses: current.expenses + Number(expense.amount),
+    });
+  });
+
+  return Array.from(grouped.entries())
+    .map(([month, values]) => ({
+      month,
+      expenses: Math.round(values.expenses),
+    }))
+    .slice(-6);
+}
+
+function CashFlowTooltip({ active, payload, label, isDark }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  return (
+    <Paper
+      sx={{
+        px: 2,
+        py: 1.5,
+        minWidth: 180,
+        bgcolor: isDark ? "rgba(15, 23, 42, 0.96)" : "#FFFFFF",
+        borderColor: isDark ? "#334155" : "#E2E8F0",
+        boxShadow: isDark
+          ? "0 18px 40px rgba(2, 6, 23, 0.45)"
+          : "0 12px 24px rgba(15, 23, 42, 0.08)",
+      }}
+    >
+      <Typography variant="body2" sx={{ mb: 1 }} color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="body2" color="error.main">
+        Expenses: {formatCurrency(payload[0].value)}
+      </Typography>
+    </Paper>
+  );
+}
+
 function getProgressColor(percent) {
   if (percent > 90) {
     return "#F43F5E";
@@ -91,6 +142,7 @@ export default function ReportCard() {
 
   const scopedExpenses = useMemo(() => getRangeExpenses(expenses, range), [expenses, range]);
   const categoryTotals = useMemo(() => buildCategoryTotals(scopedExpenses), [scopedExpenses]);
+  const cashFlowData = useMemo(() => buildCashFlowData(expenses), [expenses]);
   const filteredExpenses = selectedCategory
     ? scopedExpenses.filter((expense) => expense.primary_tag === selectedCategory)
     : scopedExpenses;
@@ -99,6 +151,16 @@ export default function ReportCard() {
     (accumulator, expense) => accumulator + Number(expense.amount),
     0,
   );
+  const spent = Number(summary?.monthly_total || 0);
+  const budget = Number(summary?.budget || 0);
+  const remaining = Math.max(budget - spent, 0);
+  const forecast = Number(summary?.predicted_total || 0);
+  const plannedGap = Math.max(forecast - spent, 0);
+  const spentWidth = budget ? Math.min((spent / budget) * 100, 100) : 0;
+  const remainingWidth = budget ? Math.min((remaining / budget) * 100, 100 - spentWidth) : 0;
+  const forecastWidth = budget
+    ? Math.min((plannedGap / budget) * 100, Math.max(100 - spentWidth - remainingWidth, 0))
+    : 0;
 
   return (
     <Grid2 container spacing={2.5}>
@@ -115,6 +177,93 @@ export default function ReportCard() {
             <Tab value="monthly" label="Monthly" />
             <Tab value="yearly" label="Yearly" />
           </Tabs>
+        </Paper>
+      </Grid2>
+
+      <Grid2 xs={12} md={5}>
+        <Paper sx={{ p: 3, height: "100%" }}>
+          <Typography variant="h6" gutterBottom>
+            Monthly Budget
+          </Typography>
+          <Box
+            sx={{
+              mt: 3,
+              mb: 2.5,
+              height: 28,
+              borderRadius: 999,
+              bgcolor: alpha("#10B981", 0.12),
+              overflow: "hidden",
+              display: "flex",
+              position: "relative",
+            }}
+          >
+            <Box sx={{ width: `${spentWidth}%`, bgcolor: "#0F766E" }} />
+            <Box sx={{ width: `${remainingWidth}%`, bgcolor: "#FF7A59" }} />
+            <Box sx={{ width: `${forecastWidth}%`, bgcolor: "#79D6C2" }} />
+          </Box>
+          <Stack spacing={1.25}>
+            {[
+              { label: "Spent", value: spent },
+              { label: "Remaining", value: remaining },
+              { label: "For goals", value: Math.max(remaining * 0.35, 0) },
+              { label: "Planned / Forecasted", value: forecast },
+            ].map((item) => (
+              <Stack
+                key={item.label}
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography color="text.secondary">{item.label}</Typography>
+                <Typography fontWeight={700}>{formatCurrency(item.value)}</Typography>
+              </Stack>
+            ))}
+          </Stack>
+        </Paper>
+      </Grid2>
+
+      <Grid2 xs={12} md={7}>
+        <Paper sx={{ p: 3, height: "100%" }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+            <Box>
+              <Typography variant="h6">Monthly Spending Trend</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Monthly expense trend moved from the dashboard.
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#F43F5E" }} />
+              <Typography variant="body2">Expenses</Typography>
+            </Stack>
+          </Stack>
+          <Box sx={{ height: 250 }}>
+            {cashFlowData.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={cashFlowData}>
+                  <defs>
+                    <linearGradient id="analyticsExpenseFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#F43F5E" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <Tooltip content={<CashFlowTooltip isDark={isDark} />} />
+                  <Area
+                    type="monotone"
+                    dataKey="expenses"
+                    stroke="#F43F5E"
+                    fill="url(#analyticsExpenseFill)"
+                    strokeWidth={3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <Stack alignItems="center" justifyContent="center" sx={{ height: "100%" }}>
+                <Typography color="text.secondary">
+                  Cash flow appears after you start logging activity.
+                </Typography>
+              </Stack>
+            )}
+          </Box>
         </Paper>
       </Grid2>
 

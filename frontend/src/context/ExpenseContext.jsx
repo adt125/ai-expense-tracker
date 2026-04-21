@@ -39,10 +39,10 @@ export function ExpenseProvider({ children }) {
 
   const login = async (email, password) => {
     const encryptedPassword = await encryptPassword(password);
-    const response = await api.post("/auth/login", {
-      username: email,
-      password: encryptedPassword,
-    });
+    const formData = new FormData();
+    formData.append("username", email);
+    formData.append("password", encryptedPassword);
+    const response = await api.post("/auth/login", formData);
     setToken(response.data.access_token);
     const user = {
       email: response.data.email,

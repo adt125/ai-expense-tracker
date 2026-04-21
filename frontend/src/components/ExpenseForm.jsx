@@ -6,7 +6,6 @@ import {
   InputAdornment,
   MenuItem,
   Paper,
-  Stack,
   TextField,
   Typography,
 } from "@mui/material";
@@ -37,6 +36,7 @@ const defaultForm = () => ({
 
 export default function ExpenseForm({
   compact = false,
+  variant = "default",
   selectedExpense,
   onClearSelection,
   onSubmitSuccess,
@@ -80,6 +80,8 @@ export default function ExpenseForm({
     setForm(defaultForm());
   };
 
+  const isDashboardVariant = variant === "dashboard";
+
   return (
     <Paper sx={{ p: 3, height: "100%" }}>
       <Typography variant="h6" gutterBottom>
@@ -87,7 +89,19 @@ export default function ExpenseForm({
       </Typography>
 
       <Box component="form" onSubmit={handleSubmit}>
-        <Stack spacing={1.5}>
+        <Box
+          sx={{
+            display: "grid",
+            gap: 1.5,
+            gridTemplateColumns: isDashboardVariant
+              ? {
+                  xs: "1fr",
+                  md: "repeat(2, minmax(0, 1fr))",
+                  xl: "repeat(3, minmax(0, 1fr))",
+                }
+              : "1fr",
+          }}
+        >
           <TextField
             label="Amount"
             name="amount"
@@ -115,7 +129,7 @@ export default function ExpenseForm({
           </TextField>
 
           <TextField
-            label="Date"
+            label={isDashboardVariant ? "Date Picker" : "Date"}
             name="date"
             type="date"
             inputRef={setDateInput}
@@ -140,19 +154,8 @@ export default function ExpenseForm({
           />
 
           <TextField
-            label="Description"
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-            placeholder="What was this expense for?"
-            multiline={compact}
-            minRows={compact ? 2 : 1}
-            fullWidth
-          />
-
-          <TextField
             select
-            label="Secondary Tag"
+            label={isDashboardVariant ? "Tag (Secondary)" : "Secondary Tag"}
             name="secondary_tag"
             value={form.secondary_tag}
             onChange={handleChange}
@@ -167,7 +170,7 @@ export default function ExpenseForm({
 
           <TextField
             select
-            label="Payment Source"
+            label={isDashboardVariant ? "Source" : "Payment Source"}
             name="payment_source"
             value={form.payment_source}
             onChange={handleChange}
@@ -179,6 +182,18 @@ export default function ExpenseForm({
               </MenuItem>
             ))}
           </TextField>
+
+          <TextField
+            label={isDashboardVariant ? "Notes" : "Description"}
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="What was this expense for?"
+            multiline={compact || isDashboardVariant}
+            minRows={compact || isDashboardVariant ? 2 : 1}
+            fullWidth
+          />
+        </Box>
 
           <Button
             type="submit"
@@ -202,7 +217,6 @@ export default function ExpenseForm({
               Cancel editing
             </Button>
           )}
-        </Stack>
       </Box>
     </Paper>
   );
