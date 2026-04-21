@@ -2,6 +2,7 @@ from datetime import date
 from ..services import expense_service
 from typing import List, Optional, Dict, Any
 from ..database import SessionLocal
+from .. import models
 
 
 def get_expense_data(
@@ -63,5 +64,36 @@ def get_expense_data(
             }
             for e in expenses
         ]
+    finally:
+        db.close()
+
+
+def get_budget_details(user_id: str) -> Dict[str, float]:
+    """
+    Retrieve the monthly budget details for a specific user.
+
+    Use this tool when an agent needs to know the user's configured budget
+    limit before answering questions about spending, savings goals, forecasts,
+    or budget health.
+
+    Args:
+        user_id: The unique identifier of the user whose budget settings should be retrieved.
+
+    Returns:
+        A dictionary containing the user's budget amount:
+        {"budget": <monthly_budget_goal>}
+
+    Notes:
+        The returned budget value comes from the user's saved settings.
+        This tool does not calculate spending, remaining balance, or forecasts.
+    """
+    db = SessionLocal()
+    try:
+        budget_details = (
+            db.query(models.UserSettings)
+            .filter(models.UserSettings.user_id == user_id)
+            .first()
+        )
+        return {"budget": budget_details.budget_goal}
     finally:
         db.close()

@@ -1,5 +1,5 @@
 from google.adk.agents import LlmAgent
-from .agent_tools import get_expense_data
+from .agent_tools import get_expense_data, get_budget_details
 
 expense_analysis_agent = LlmAgent(
     model="gemini-flash-latest",
@@ -39,5 +39,5 @@ expense_analysis_agent = LlmAgent(
 - For questions: Provide direct, informative answers with examples when helpful
 
 Remember, your goal is to help users gain better control over their finances through data-driven insights and practical advice.""",
-    tools=[get_expense_data],
+    tools=[get_expense_data, get_budget_details],
 )

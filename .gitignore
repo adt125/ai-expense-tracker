@@ -7,9 +7,12 @@
 # Frontend
 /frontend/node_modules
 /frontend/dist
+/frontend/package-lock.json
 
 # General
 .DS_Store
 
 #vs-code
 settings.json
+
+start.sh
