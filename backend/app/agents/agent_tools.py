@@ -68,7 +68,7 @@ def get_expense_data(
         db.close()
 
 
-def get_budget_details(user_id: str) -> Dict[str, float]:
+def get_budget_details(user_id: str) -> Dict[str, str]:
     """
     Retrieve the monthly budget details for a specific user.
 
@@ -94,6 +94,6 @@ def get_budget_details(user_id: str) -> Dict[str, float]:
             .filter(models.UserSettings.user_id == user_id)
             .first()
         )
-        return {"budget": budget_details.budget_goal}
+        return {"budget": str(budget_details.budget_goal)}
     finally:
         db.close()
