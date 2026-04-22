@@ -1,11 +1,13 @@
-import { useContext, useMemo } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   Avatar,
   Box,
   Button,
+  IconButton,
   Paper,
   Stack,
   Typography,
+  TextField,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
@@ -17,17 +19,12 @@ import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import ShoppingBasketRoundedIcon from "@mui/icons-material/ShoppingBasketRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import { alpha, useTheme } from "@mui/material/styles";
-import {
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { ExpenseContext } from "../context/ExpenseContext";
 import ExpenseForm from "./ExpenseForm";
 
 const categoryColors = ["#6366F1", "#10B981", "#F59E0B", "#F43F5E", "#0F766E"];
+const lowerCardHeight = { xs: 450, lg: "calc(100vh - 475px)" };
 
 const iconMap = {
   Food: LocalCafeRoundedIcon,
@@ -36,6 +33,24 @@ const iconMap = {
   Fuel: CommuteRoundedIcon,
   Rent: HomeRoundedIcon,
 };
+
+const initialChatMessages = [
+  {
+    id: 1,
+    role: "assistant",
+    text: "I can summarize spend, flag patterns, or help plan your next budget.",
+  },
+  {
+    id: 2,
+    role: "user",
+    text: "Show me where April spending is highest.",
+  },
+  {
+    id: 3,
+    role: "assistant",
+    text: "Health and groceries are leading this view. I can break that down by merchant next.",
+  },
+];
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-IN", {
@@ -94,6 +109,9 @@ export default function Dashboard({
   const { expenses, summary } = useContext(ExpenseContext);
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState(initialChatMessages);
+  const chatMessagesRef = useRef(null);
 
   const spent = Number(summary?.monthly_total || 0);
   const budget = Number(summary?.budget || 0);
@@ -118,6 +136,42 @@ export default function Dashboard({
       : "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",
     borderColor: isDark ? alpha("#94A3B8", 0.12) : "#E2E8F0",
   };
+
+  const handleChatSubmit = (event) => {
+    event.preventDefault();
+    const trimmedMessage = chatInput.trim();
+
+    if (!trimmedMessage) {
+      return;
+    }
+
+    const timestamp = Date.now();
+    setChatMessages((currentMessages) => [
+      ...currentMessages,
+      {
+        id: timestamp,
+        role: "user",
+        text: trimmedMessage,
+      },
+      {
+        id: timestamp + 1,
+        role: "assistant",
+        text: "I will connect this to the chat API next. For now, I have saved your question in this conversation.",
+      },
+    ]);
+    setChatInput("");
+  };
+
+  useEffect(() => {
+    if (!chatMessagesRef.current) {
+      return;
+    }
+
+    chatMessagesRef.current.scrollTo({
+      top: chatMessagesRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [chatMessages]);
 
   return (
     <Grid2 container spacing={2.5}>
@@ -199,8 +253,7 @@ export default function Dashboard({
         <Paper
           sx={{
             p: 3,
-            minHeight: { xs: 396, lg: "calc(100vh - 520px)" },
-            height: "100%",
+            height: lowerCardHeight,
             display: "flex",
             flexDirection: "column",
             ...cardSurface,
@@ -234,7 +287,11 @@ export default function Dashboard({
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <Stack alignItems="center" justifyContent="center" sx={{ height: "100%" }}>
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                sx={{ height: "100%" }}
+              >
                 <Typography color="text.secondary">
                   Add a few expenses to see category share.
                 </Typography>
@@ -261,7 +318,9 @@ export default function Dashboard({
                   />
                   <Typography>{category.name}</Typography>
                 </Stack>
-                <Typography color="text.secondary">{category.percent}%</Typography>
+                <Typography color="text.secondary">
+                  {category.percent}%
+                </Typography>
               </Stack>
             ))}
           </Stack>
@@ -272,8 +331,7 @@ export default function Dashboard({
         <Paper
           sx={{
             p: 3,
-            minHeight: { xs: 396, lg: "calc(100vh - 520px)" },
-            height: "100%",
+            height: lowerCardHeight,
             display: "flex",
             flexDirection: "column",
             ...cardSurface,
@@ -286,7 +344,11 @@ export default function Dashboard({
             sx={{ mb: 2 }}
           >
             <Typography variant="h6">Recent Activity</Typography>
-            <Button size="small" sx={{ color: "#A78BFA" }} onClick={onViewAllTransactions}>
+            <Button
+              size="small"
+              sx={{ color: "#A78BFA" }}
+              onClick={onViewAllTransactions}
+            >
               View all
             </Button>
           </Stack>
@@ -298,9 +360,9 @@ export default function Dashboard({
                   iconMap[expense.primary_tag] || StorefrontRoundedIcon;
 
                 return (
-                    <Paper
-                      key={expense.id}
-                      sx={{
+                  <Paper
+                    key={expense.id}
+                    sx={{
                       p: { xs: 1.6, lg: 2 },
                       borderRadius: 3,
                       borderColor: "transparent",
@@ -324,7 +386,8 @@ export default function Dashboard({
                               categoryColors[index % categoryColors.length],
                               0.18,
                             ),
-                            color: categoryColors[index % categoryColors.length],
+                            color:
+                              categoryColors[index % categoryColors.length],
                           }}
                         >
                           <IconComponent fontSize="small" />
@@ -358,8 +421,7 @@ export default function Dashboard({
         <Paper
           sx={{
             p: 3,
-            minHeight: { xs: 396, lg: "calc(100vh - 520px)" },
-            height: "100%",
+            height: lowerCardHeight,
             display: "flex",
             flexDirection: "column",
             ...cardSurface,
@@ -370,59 +432,56 @@ export default function Dashboard({
           </Typography>
 
           <Stack
+            ref={chatMessagesRef}
             spacing={1.5}
             sx={{
               flex: 1,
+              minHeight: 0,
               mb: 2,
               overflowY: "auto",
-              justifyContent: "space-between",
+              pr: 0.5,
+              "&::-webkit-scrollbar": {
+                width: 6,
+              },
+              "&::-webkit-scrollbar-thumb": {
+                borderRadius: 999,
+                backgroundColor: alpha("#94A3B8", isDark ? 0.35 : 0.45),
+              },
             }}
           >
-            <Box
-              sx={{
-                alignSelf: "flex-start",
-                maxWidth: "86%",
-                px: 1.75,
-                py: 1.25,
-                borderRadius: 3,
-                bgcolor: isDark ? alpha("#94A3B8", 0.12) : "#F1F5F9",
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                I can summarize spend, flag patterns, or help plan your next budget.
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                alignSelf: "flex-end",
-                maxWidth: "86%",
-                px: 1.75,
-                py: 1.25,
-                borderRadius: 3,
-                bgcolor: alpha("#0F766E", isDark ? 0.28 : 0.1),
-              }}
-            >
-              <Typography variant="body2">
-                Show me where April spending is highest.
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                alignSelf: "flex-start",
-                maxWidth: "86%",
-                px: 1.75,
-                py: 1.25,
-                borderRadius: 3,
-                bgcolor: isDark ? alpha("#94A3B8", 0.12) : "#F1F5F9",
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Health and groceries are leading this view. I can break that down by merchant next.
-              </Typography>
-            </Box>
+            {chatMessages.map((message) => {
+              const isUserMessage = message.role === "user";
+
+              return (
+                <Box
+                  key={message.id}
+                  sx={{
+                    alignSelf: isUserMessage ? "flex-end" : "flex-start",
+                    maxWidth: "86%",
+                    px: 1.75,
+                    py: 1.25,
+                    borderRadius: 3,
+                    bgcolor: isUserMessage
+                      ? alpha("#0F766E", isDark ? 0.28 : 0.1)
+                      : isDark
+                        ? alpha("#94A3B8", 0.12)
+                        : "#F1F5F9",
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    color={isUserMessage ? "text.primary" : "text.secondary"}
+                  >
+                    {message.text}
+                  </Typography>
+                </Box>
+              );
+            })}
           </Stack>
 
           <Box
+            component="form"
+            onSubmit={handleChatSubmit}
             sx={{
               borderRadius: 999,
               px: 2,
@@ -437,21 +496,41 @@ export default function Dashboard({
                 : "linear-gradient(90deg, rgba(248,250,252,0.95) 0%, rgba(204,251,241,0.55) 100%)",
             }}
           >
-            <Typography color="text.secondary" sx={{ flex: 1 }}>
-              Ask me about your April spending...
-            </Typography>
+            <TextField
+              name="chat-input"
+              value={chatInput}
+              onChange={(event) => setChatInput(event.target.value)}
+              placeholder="Ask me about your April spending..."
+              fullWidth
+              variant="standard"
+              InputProps={{ disableUnderline: true }}
+              sx={{
+                "& .MuiInputBase-root": {
+                  px: 1,
+                },
+              }}
+            />
             <Stack direction="row" spacing={1} alignItems="center">
               <AutoAwesomeRoundedIcon sx={{ color: "#0F766E" }} />
-              <Avatar
+              <IconButton
+                type="submit"
+                disabled={!chatInput.trim()}
                 sx={{
                   width: 42,
                   height: 42,
                   bgcolor: alpha("#0F766E", isDark ? 0.45 : 0.16),
                   color: isDark ? "#D1FAE5" : "#0F766E",
+                  "&:hover": {
+                    bgcolor: alpha("#0F766E", isDark ? 0.6 : 0.24),
+                  },
+                  "&.Mui-disabled": {
+                    bgcolor: alpha("#0F766E", isDark ? 0.16 : 0.08),
+                    color: alpha(isDark ? "#D1FAE5" : "#0F766E", 0.45),
+                  },
                 }}
               >
                 <SendRoundedIcon fontSize="small" />
-              </Avatar>
+              </IconButton>
             </Stack>
           </Box>
         </Paper>
