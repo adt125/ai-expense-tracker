@@ -106,7 +106,7 @@ export default function Dashboard({
   onExpenseSaved,
   onViewAllTransactions,
 }) {
-  const { expenses, summary } = useContext(ExpenseContext);
+  const { expenses, summary, fetchAgentResponse } = useContext(ExpenseContext);
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const [chatInput, setChatInput] = useState("");
@@ -137,15 +137,14 @@ export default function Dashboard({
     borderColor: isDark ? alpha("#94A3B8", 0.12) : "#E2E8F0",
   };
 
-  const handleChatSubmit = (event) => {
+  const handleChatSubmit = async (event) => {
     event.preventDefault();
     const trimmedMessage = chatInput.trim();
-
+    const timestamp = Date.now();
     if (!trimmedMessage) {
       return;
     }
 
-    const timestamp = Date.now();
     setChatMessages((currentMessages) => [
       ...currentMessages,
       {
@@ -153,13 +152,23 @@ export default function Dashboard({
         role: "user",
         text: trimmedMessage,
       },
+    ]);
+    setChatInput("");
+
+    const payload = {
+      query: trimmedMessage,
+    };
+
+    const response = await fetchAgentResponse(payload);
+
+    setChatMessages((currentMessages) => [
+      ...currentMessages,
       {
         id: timestamp + 1,
         role: "assistant",
-        text: "I will connect this to the chat API next. For now, I have saved your question in this conversation.",
+        text: response.response,
       },
     ]);
-    setChatInput("");
   };
 
   useEffect(() => {
@@ -502,6 +511,8 @@ export default function Dashboard({
               onChange={(event) => setChatInput(event.target.value)}
               placeholder="Ask me about your April spending..."
               fullWidth
+              multiline
+              maxRows={4}
               variant="standard"
               InputProps={{ disableUnderline: true }}
               sx={{

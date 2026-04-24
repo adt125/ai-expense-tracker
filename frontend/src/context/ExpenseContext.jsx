@@ -6,6 +6,7 @@ export const ExpenseContext = createContext(null);
 
 const initialState = {
   token: null,
+  sessionId: null,
   currentUser: null,
   expenses: [],
   summary: null,
@@ -14,6 +15,9 @@ const initialState = {
 
 export function ExpenseProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem("expense_token"));
+  const [sessionId, setSessionId] = useState(
+    localStorage.getItem("expense_agent_session_id"),
+  );
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem("expense_user");
     return saved ? JSON.parse(saved) : null;
@@ -25,6 +29,9 @@ export function ExpenseProvider({ children }) {
   useEffect(() => {
     if (token) {
       localStorage.setItem("expense_token", token);
+      if (sessionId) {
+        localStorage.setItem("expense_agent_session_id", sessionId);
+      }
       if (currentUser) {
         localStorage.setItem("expense_user", JSON.stringify(currentUser));
       }
@@ -33,9 +40,10 @@ export function ExpenseProvider({ children }) {
       fetchReport();
     } else {
       localStorage.removeItem("expense_token");
+      localStorage.removeItem("expense_agent_session_id");
       localStorage.removeItem("expense_user");
     }
-  }, [token, currentUser]);
+  }, [token, sessionId, currentUser]);
 
   const login = async (email, password) => {
     const encryptedPassword = await encryptPassword(password);
@@ -44,12 +52,14 @@ export function ExpenseProvider({ children }) {
     formData.append("password", encryptedPassword);
     const response = await api.post("/auth/login", formData);
     setToken(response.data.access_token);
+    setSessionId(response.data.session_id);
     const user = {
       email: response.data.email,
       full_name: response.data.full_name,
     };
     setCurrentUser(user);
     localStorage.setItem("expense_user", JSON.stringify(user));
+    localStorage.setItem("expense_agent_session_id", response.data.session_id);
   };
 
   const register = async (payload) => {
@@ -61,13 +71,28 @@ export function ExpenseProvider({ children }) {
     await login(payload.email, payload.password);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (token && sessionId) {
+      try {
+        await api.post("/expensoAi/reset-session", null, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "X-Session-ID": sessionId,
+          },
+        });
+      } catch (error) {
+        console.warn("Unable to terminate agent session", error);
+      }
+    }
     setToken(null);
+    setSessionId(null);
     setCurrentUser(null);
     setExpenses([]);
     setSummary(null);
     setReport(null);
+    setAgentResponse("");
     localStorage.removeItem("expense_user");
+    localStorage.removeItem("expense_agent_session_id");
   };
 
   const fetchExpenses = async () => {
@@ -94,6 +119,22 @@ export function ExpenseProvider({ children }) {
       params: { budget: 50000 },
     });
     setReport(response.data);
+  };
+
+  const fetchAgentResponse = async (payload) => {
+    if (!token || !sessionId) return;
+    try {
+      const response = await api.post("/expensoAi/chat", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "X-Session-ID": sessionId,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      return { response: "Error occurred!" };
+    }
   };
 
   const addExpense = async (expenseData) => {
@@ -131,6 +172,7 @@ export function ExpenseProvider({ children }) {
       value={{
         ...initialState,
         token,
+        sessionId,
         currentUser,
         expenses,
         summary,
@@ -141,6 +183,7 @@ export function ExpenseProvider({ children }) {
         addExpense,
         updateExpense,
         deleteExpense,
+        fetchAgentResponse,
       }}
     >
       {children}

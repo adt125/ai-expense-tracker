@@ -62,7 +62,10 @@ export default function ExpenseForm({
   }, [selectedExpense]);
 
   const handleChange = (event) => {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    setForm((current) => ({
+      ...current,
+      [event.target.name]: event.target.value,
+    }));
   };
 
   const handleSubmit = async (event) => {
@@ -97,7 +100,7 @@ export default function ExpenseForm({
               ? {
                   xs: "1fr",
                   md: "repeat(2, minmax(0, 1fr))",
-                  xl: "repeat(3, minmax(0, 1fr))",
+                  xl: "repeat(2, minmax(0, 1fr))",
                 }
               : "1fr",
           }}
@@ -195,28 +198,28 @@ export default function ExpenseForm({
           />
         </Box>
 
-          <Button
-            type="submit"
-            variant="contained"
-            size="large"
-            fullWidth
-            sx={{
-              mt: 1,
-              py: 1.2,
-              background: "linear-gradient(135deg, #FF7A59 0%, #FB4D72 100%)",
-              "&:hover": {
-                background: "linear-gradient(135deg, #F97316 0%, #F43F5E 100%)",
-              },
-            }}
-          >
-            {selectedExpense ? "Save Changes" : "Log Expense"}
-          </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          sx={{
+            mt: 1,
+            py: 1.2,
+            background: "linear-gradient(135deg, #FF7A59 0%, #FB4D72 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #F97316 0%, #F43F5E 100%)",
+            },
+          }}
+        >
+          {selectedExpense ? "Save Changes" : "Log Expense"}
+        </Button>
 
-          {selectedExpense && (
-            <Button variant="text" onClick={() => onClearSelection?.()}>
-              Cancel editing
-            </Button>
-          )}
+        {selectedExpense && (
+          <Button variant="text" onClick={() => onClearSelection?.()}>
+            Cancel editing
+          </Button>
+        )}
       </Box>
     </Paper>
   );

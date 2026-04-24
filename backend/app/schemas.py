@@ -12,6 +12,7 @@ class Token(BaseModel):
 class UserToken(Token):
     email: EmailStr
     full_name: Optional[str]
+    session_id: str
 
 
 class TokenData(BaseModel):
@@ -20,7 +21,9 @@ class TokenData(BaseModel):
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6, description="Password must be at least 6 characters")
+    password: str = Field(
+        min_length=6, description="Password must be at least 6 characters"
+    )
     full_name: Optional[str] = None
 
 
@@ -97,3 +100,11 @@ class ExpenseChartPoint(BaseModel):
 class ForecastResponse(BaseModel):
     predicted_monthly_spend: float
     will_exceed_budget: bool
+
+
+class ChatInput(BaseModel):
+    query: str
+
+
+class ChatResponse(BaseModel):
+    response: str
