@@ -24,7 +24,7 @@ import { ExpenseContext } from "../context/ExpenseContext";
 import ExpenseForm from "./ExpenseForm";
 
 const categoryColors = ["#6366F1", "#10B981", "#F59E0B", "#F43F5E", "#0F766E"];
-const lowerCardHeight = { xs: 450, lg: "calc(100vh - 475px)" };
+const lowerCardHeight = { xs: 400, lg: "calc(100vh - 500px)" };
 
 const iconMap = {
   Food: LocalCafeRoundedIcon,
