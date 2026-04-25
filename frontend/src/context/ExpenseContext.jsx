@@ -8,6 +8,7 @@ const initialState = {
   token: null,
   sessionId: null,
   currentUser: null,
+  userSettings: null,
   expenses: [],
   summary: null,
   report: null,
@@ -25,8 +26,13 @@ export function ExpenseProvider({ children }) {
   const [expenses, setExpenses] = useState([]);
   const [summary, setSummary] = useState(null);
   const [report, setReport] = useState(null);
+  const [userSettings, setUserSettings] = useState(null);
 
   useEffect(() => {
+    const loadUserData = () => {
+      fetchExpenses();
+      fetchUserSettings();
+    };
     if (token) {
       localStorage.setItem("expense_token", token);
       if (sessionId) {
@@ -35,15 +41,18 @@ export function ExpenseProvider({ children }) {
       if (currentUser) {
         localStorage.setItem("expense_user", JSON.stringify(currentUser));
       }
-      fetchSummary();
-      fetchExpenses();
-      fetchReport();
+      loadUserData();
     } else {
       localStorage.removeItem("expense_token");
       localStorage.removeItem("expense_agent_session_id");
       localStorage.removeItem("expense_user");
     }
   }, [token, sessionId, currentUser]);
+
+  useEffect(() => {
+    fetchReport();
+    fetchSummary();
+  }, [userSettings]);
 
   const login = async (email, password) => {
     const encryptedPassword = await encryptPassword(password);
@@ -90,7 +99,7 @@ export function ExpenseProvider({ children }) {
     setExpenses([]);
     setSummary(null);
     setReport(null);
-    setAgentResponse("");
+    setUserSettings(null);
     localStorage.removeItem("expense_user");
     localStorage.removeItem("expense_agent_session_id");
   };
@@ -107,7 +116,7 @@ export function ExpenseProvider({ children }) {
     if (!token) return;
     const response = await api.get("/summary", {
       headers: { Authorization: `Bearer ${token}` },
-      params: { budget: 50000 },
+      params: { budget: userSettings.budget_goal },
     });
     setSummary(response.data);
   };
@@ -116,7 +125,7 @@ export function ExpenseProvider({ children }) {
     if (!token) return;
     const response = await api.get("/report", {
       headers: { Authorization: `Bearer ${token}` },
-      params: { budget: 50000 },
+      params: { budget: userSettings.budget_goal },
     });
     setReport(response.data);
   };
@@ -135,6 +144,23 @@ export function ExpenseProvider({ children }) {
     } catch (error) {
       return { response: "Error occurred!" };
     }
+  };
+
+  const fetchUserSettings = async () => {
+    if (!token) return;
+    const response = await api.get("/expenses/get_user_settings", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setUserSettings(response.data);
+  };
+
+  const updateUserSettings = async (budget) => {
+    if (!token) return;
+    const response = await api.post("/expenses/update_user_settings", null, {
+      headers: { Authorization: `Bearer ${token}` },
+      params: { budget: budget },
+    });
+    setUserSettings(response.data);
   };
 
   const addExpense = async (expenseData) => {
@@ -184,6 +210,7 @@ export function ExpenseProvider({ children }) {
         updateExpense,
         deleteExpense,
         fetchAgentResponse,
+        updateUserSettings,
       }}
     >
       {children}

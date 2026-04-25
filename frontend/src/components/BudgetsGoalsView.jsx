@@ -9,6 +9,7 @@ import {
   Slider,
   Stack,
   Typography,
+  Button,
 } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { alpha } from "@mui/material/styles";
@@ -35,8 +36,10 @@ function formatCurrency(value) {
 }
 
 export default function BudgetsGoalsView() {
-  const { expenses, summary } = useContext(ExpenseContext);
-  const [budgetTarget, setBudgetTarget] = useState(Number(summary?.budget || 50000));
+  const { expenses, summary, updateUserSettings } = useContext(ExpenseContext);
+  const [budgetTarget, setBudgetTarget] = useState(
+    Number(summary?.budget || 50000),
+  );
 
   const categoryBudgets = useMemo(() => {
     const grouped = expenses.reduce((accumulator, expense) => {
@@ -76,17 +79,37 @@ export default function BudgetsGoalsView() {
               onChange={(_, value) => setBudgetTarget(value)}
               sx={{ mt: 3 }}
             />
+            <Stack direction="row" spacing={1} sx={{ mt: 3 }}>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  updateUserSettings(budgetTarget);
+                }}
+                disabled={budgetTarget === Number(summary?.budget || 50000)}
+                sx={{ flex: 1 }}
+              >
+                Save
+              </Button>
+            </Stack>
           </Box>
 
           <Stack spacing={2.5} sx={{ mt: 4 }}>
             {categoryBudgets.map((budget) => {
-              const percent = Math.min((budget.spent / budget.limit) * 100, 100);
+              const percent = Math.min(
+                (budget.spent / budget.limit) * 100,
+                100,
+              );
               return (
                 <Box key={budget.name}>
-                  <Stack direction="row" justifyContent="space-between" mb={0.75}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    mb={0.75}
+                  >
                     <Typography>{budget.name}</Typography>
                     <Typography color="text.secondary">
-                      {formatCurrency(budget.spent)} / {formatCurrency(budget.limit)}
+                      {formatCurrency(budget.spent)} /{" "}
+                      {formatCurrency(budget.limit)}
                     </Typography>
                   </Stack>
                   <LinearProgress
@@ -98,7 +121,12 @@ export default function BudgetsGoalsView() {
                       bgcolor: alpha("#6366F1", 0.12),
                       "& .MuiLinearProgress-bar": {
                         borderRadius: 999,
-                        bgcolor: percent > 90 ? "#F43F5E" : percent > 70 ? "#F59E0B" : "#10B981",
+                        bgcolor:
+                          percent > 90
+                            ? "#F43F5E"
+                            : percent > 70
+                              ? "#F59E0B"
+                              : "#10B981",
                       },
                     }}
                   />
@@ -150,7 +178,9 @@ export default function BudgetsGoalsView() {
                     {member.name}
                   </Typography>
                   <Typography variant="h5">
-                    {formatCurrency((summary?.monthly_total || 0) * (0.24 + index * 0.12))}
+                    {formatCurrency(
+                      (summary?.monthly_total || 0) * (0.24 + index * 0.12),
+                    )}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Estimated share this month
@@ -192,7 +222,11 @@ export default function BudgetsGoalsView() {
                     background: `linear-gradient(135deg, ${alpha(goal.accent, 0.12)} 0%, #FFFFFF 100%)`,
                   }}
                 >
-                  <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="flex-start"
+                  >
                     <Box>
                       <Typography variant="h6">{goal.title}</Typography>
                       <Typography variant="body2" color="text.secondary">

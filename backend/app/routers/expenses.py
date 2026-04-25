@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
-from ..services import expense_service
+from ..services import expense_service, user_service
 from .. import models, schemas
 from ..dependencies import get_current_user, get_db
 from ..services.excel_service import parse_expense_template
@@ -37,9 +37,13 @@ def update_expense(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    expense = expense_service.update_expense(db, current_user.id, expense_id, expense_update)
+    expense = expense_service.update_expense(
+        db, current_user.id, expense_id, expense_update
+    )
     if not expense:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found"
+        )
     return expense
 
 
@@ -51,7 +55,9 @@ def delete_expense(
 ):
     deleted = expense_service.delete_expense(db, current_user.id, expense_id)
     if not deleted:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Expense not found"
+        )
     return {"detail": "Expense deleted"}
 
 
@@ -62,7 +68,9 @@ def upload_expenses(
     db: Session = Depends(get_db),
 ):
     if not file.filename.endswith(".xlsx"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Upload an .xlsx file")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Upload an .xlsx file"
+        )
 
     content = file.file.read()
     with open("/tmp/expense_upload.xlsx", "wb") as tmp_file:
@@ -80,3 +88,22 @@ def upload_expenses(
         imported += 1
 
     return {"imported": imported, "message": f"Imported {imported} expenses."}
+
+
+@router.get("/get_user_settings", response_model=schemas.UserSettingsRead)
+def get_user_settings(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return user_service.get_or_create_user_settings(db=db, user_id=current_user.id)
+
+
+@router.post("/update_user_settings", response_model=schemas.UserSettingsRead)
+def update_user_settings(
+    budget: float,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return user_service.update_user_settings(
+        db=db, user_id=current_user.id, budget_goal=budget
+    )
