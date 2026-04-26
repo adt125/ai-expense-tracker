@@ -43,9 +43,7 @@ export default function Chat() {
         text: trimmedMessage,
       },
     ]);
-
-    // Simulate delay (e.g. 1.5 seconds)
-    await new Promise((res) => setTimeout(res, 1500));
+    await new Promise((res) => setTimeout(res, 1000));
     setChatMessages((prev) => [
       ...prev,
       { role: "assistant", text: "Typing ...", loading: true },
