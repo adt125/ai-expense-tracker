@@ -52,36 +52,39 @@ export default function TransactionsView({ onEditExpense }) {
   const filteredRows = useMemo(() => {
     const lowerCaseQuery = query.trim().toLowerCase();
 
-    return expenses
-      .filter((expense) => {
-        if (!lowerCaseQuery) {
-          return true;
-        }
+    return (
+      expenses
+        .filter((expense) => {
+          if (!lowerCaseQuery) {
+            return true;
+          }
 
-        return [
-          expense.description,
-          expense.primary_tag,
-          expense.secondary_tag,
-          expense.payment_source,
-          expense.date,
-        ]
-          .filter(Boolean)
-          .some((value) =>
-            String(value).toLowerCase().includes(lowerCaseQuery),
-          );
-      })
-      .map((expense) => ({
-        id: expense.id,
-        date: expense.date,
-        dateBucket: getDateBucket(expense.date),
-        description: expense.description || expense.primary_tag,
-        category: expense.primary_tag,
-        purpose: expense.secondary_tag,
-        payment: expense.payment_source,
-        amount: Number(expense.amount),
-        rawExpense: expense,
-      }))
-      .sort((first, second) => new Date(second.date) - new Date(first.date));
+          return [
+            expense.description,
+            expense.primary_tag,
+            expense.secondary_tag,
+            expense.payment_source,
+            expense.date,
+          ]
+            .filter(Boolean)
+            .some((value) =>
+              String(value).toLowerCase().includes(lowerCaseQuery),
+            );
+        })
+        .map((expense) => ({
+          id: expense.id,
+          date: expense.date,
+          dateBucket: getDateBucket(expense.date),
+          description: expense.description || expense.primary_tag,
+          category: expense.primary_tag,
+          purpose: expense.secondary_tag,
+          payment: expense.payment_source,
+          amount: Number(expense.amount),
+          rawExpense: expense,
+        }))
+        // @ts-ignore
+        .sort((first, second) => new Date(second.date) - new Date(first.date))
+    );
   }, [expenses, query]);
 
   const columns = [

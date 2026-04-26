@@ -1,26 +1,16 @@
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Avatar,
-  Box,
-  Button,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-  TextField,
-} from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2";
-import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
 import CommuteRoundedIcon from "@mui/icons-material/CommuteRounded";
 import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import LocalCafeRoundedIcon from "@mui/icons-material/LocalCafeRounded";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import ShoppingBasketRoundedIcon from "@mui/icons-material/ShoppingBasketRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
+import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
+import Grid2 from "@mui/material/Unstable_Grid2";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { ExpenseContext } from "../context/ExpenseContext";
+import Chat from "./Chat";
 import ExpenseForm from "./ExpenseForm";
 
 const categoryColors = ["#6366F1", "#10B981", "#F59E0B", "#F43F5E", "#0F766E"];
@@ -33,24 +23,6 @@ const iconMap = {
   Fuel: CommuteRoundedIcon,
   Rent: HomeRoundedIcon,
 };
-
-const initialChatMessages = [
-  {
-    id: 1,
-    role: "assistant",
-    text: "I can summarize spend, flag patterns, or help plan your next budget.",
-  },
-  {
-    id: 2,
-    role: "user",
-    text: "Show me where April spending is highest.",
-  },
-  {
-    id: 3,
-    role: "assistant",
-    text: "Health and groceries are leading this view. I can break that down by merchant next.",
-  },
-];
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-IN", {
@@ -106,11 +78,11 @@ export default function Dashboard({
   onExpenseSaved,
   onViewAllTransactions,
 }) {
-  const { expenses, summary, fetchAgentResponse } = useContext(ExpenseContext);
+  const { expenses, summary } = useContext(ExpenseContext);
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState(initialChatMessages);
+  const [chatMessages, setChatMessages] = useState([]);
   const chatMessagesRef = useRef(null);
 
   const spent = Number(summary?.monthly_total || 0);
@@ -125,6 +97,7 @@ export default function Dashboard({
     () =>
       expenses
         .slice()
+        // @ts-ignore
         .sort((first, second) => new Date(second.date) - new Date(first.date))
         .slice(0, 4),
     [expenses],
@@ -136,51 +109,6 @@ export default function Dashboard({
       : "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",
     borderColor: isDark ? alpha("#94A3B8", 0.12) : "#E2E8F0",
   };
-
-  const handleChatSubmit = async (event) => {
-    event.preventDefault();
-    const trimmedMessage = chatInput.trim();
-    const timestamp = Date.now();
-    if (!trimmedMessage) {
-      return;
-    }
-
-    setChatMessages((currentMessages) => [
-      ...currentMessages,
-      {
-        id: timestamp,
-        role: "user",
-        text: trimmedMessage,
-      },
-    ]);
-    setChatInput("");
-
-    const payload = {
-      query: trimmedMessage,
-    };
-
-    const response = await fetchAgentResponse(payload);
-
-    setChatMessages((currentMessages) => [
-      ...currentMessages,
-      {
-        id: timestamp + 1,
-        role: "assistant",
-        text: response.response,
-      },
-    ]);
-  };
-
-  useEffect(() => {
-    if (!chatMessagesRef.current) {
-      return;
-    }
-
-    chatMessagesRef.current.scrollTo({
-      top: chatMessagesRef.current.scrollHeight,
-      behavior: "smooth",
-    });
-  }, [chatMessages]);
 
   return (
     <Grid2 container spacing={2.5}>
@@ -427,124 +355,7 @@ export default function Dashboard({
       </Grid2>
 
       <Grid2 xs={12} md={4}>
-        <Paper
-          sx={{
-            p: 3,
-            height: lowerCardHeight,
-            display: "flex",
-            flexDirection: "column",
-            ...cardSurface,
-          }}
-        >
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Ask Expenso
-          </Typography>
-
-          <Stack
-            ref={chatMessagesRef}
-            spacing={1.5}
-            sx={{
-              flex: 1,
-              minHeight: 0,
-              mb: 2,
-              overflowY: "auto",
-              pr: 0.5,
-              "&::-webkit-scrollbar": {
-                width: 6,
-              },
-              "&::-webkit-scrollbar-thumb": {
-                borderRadius: 999,
-                backgroundColor: alpha("#94A3B8", isDark ? 0.35 : 0.45),
-              },
-            }}
-          >
-            {chatMessages.map((message) => {
-              const isUserMessage = message.role === "user";
-
-              return (
-                <Box
-                  key={message.id}
-                  sx={{
-                    alignSelf: isUserMessage ? "flex-end" : "flex-start",
-                    maxWidth: "86%",
-                    px: 1.75,
-                    py: 1.25,
-                    borderRadius: 3,
-                    bgcolor: isUserMessage
-                      ? alpha("#0F766E", isDark ? 0.28 : 0.1)
-                      : isDark
-                        ? alpha("#94A3B8", 0.12)
-                        : "#F1F5F9",
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    color={isUserMessage ? "text.primary" : "text.secondary"}
-                  >
-                    {message.text}
-                  </Typography>
-                </Box>
-              );
-            })}
-          </Stack>
-
-          <Box
-            component="form"
-            onSubmit={handleChatSubmit}
-            sx={{
-              borderRadius: 999,
-              px: 2,
-              py: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 1.5,
-              border: `1px solid ${alpha("#2DD4BF", isDark ? 0.32 : 0.22)}`,
-              background: isDark
-                ? "linear-gradient(90deg, rgba(71,85,105,0.24) 0%, rgba(45,212,191,0.18) 100%)"
-                : "linear-gradient(90deg, rgba(248,250,252,0.95) 0%, rgba(204,251,241,0.55) 100%)",
-            }}
-          >
-            <TextField
-              name="chat-input"
-              value={chatInput}
-              onChange={(event) => setChatInput(event.target.value)}
-              placeholder="Ask me about your April spending..."
-              fullWidth
-              multiline
-              maxRows={4}
-              variant="standard"
-              InputProps={{ disableUnderline: true }}
-              sx={{
-                "& .MuiInputBase-root": {
-                  px: 1,
-                },
-              }}
-            />
-            <Stack direction="row" spacing={1} alignItems="center">
-              <AutoAwesomeRoundedIcon sx={{ color: "#0F766E" }} />
-              <IconButton
-                type="submit"
-                disabled={!chatInput.trim()}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  bgcolor: alpha("#0F766E", isDark ? 0.45 : 0.16),
-                  color: isDark ? "#D1FAE5" : "#0F766E",
-                  "&:hover": {
-                    bgcolor: alpha("#0F766E", isDark ? 0.6 : 0.24),
-                  },
-                  "&.Mui-disabled": {
-                    bgcolor: alpha("#0F766E", isDark ? 0.16 : 0.08),
-                    color: alpha(isDark ? "#D1FAE5" : "#0F766E", 0.45),
-                  },
-                }}
-              >
-                <SendRoundedIcon fontSize="small" />
-              </IconButton>
-            </Stack>
-          </Box>
-        </Paper>
+        <Chat />
       </Grid2>
     </Grid2>
   );
