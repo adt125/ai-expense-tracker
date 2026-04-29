@@ -136,7 +136,7 @@ export function ExpenseProvider({ children }) {
   };
 
   const fetchSummary = async () => {
-    if (!token) return;
+    if (!token || !userSettings) return;
     const response = await api.get("/summary", {
       headers: { Authorization: `Bearer ${token}` },
       params: { budget: userSettings.budget_goal },
@@ -145,7 +145,7 @@ export function ExpenseProvider({ children }) {
   };
 
   const fetchReport = async () => {
-    if (!token) return;
+    if (!token || !userSettings) return;
     const response = await api.get("/report", {
       headers: { Authorization: `Bearer ${token}` },
       params: { budget: userSettings.budget_goal },
@@ -165,7 +165,18 @@ export function ExpenseProvider({ children }) {
 
       return response.data;
     } catch (error) {
-      return { response: "Error occurred!" };
+      const status = error?.response?.status;
+      const detail = error?.response?.data?.detail;
+
+      if (status === 429) {
+        return {
+          response:
+            detail ||
+            "You have exceeded your free tier limit for today (5 questions). Please try again tomorrow.",
+        };
+      }
+
+      return { response: "Sorry, something went wrong. Please try again." };
     }
   };
 

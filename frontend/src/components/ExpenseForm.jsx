@@ -2,6 +2,11 @@ import { useContext, useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -24,6 +29,8 @@ const primaryTags = [
 ];
 const secondaryTags = ["Need", "Want", "Investment"];
 const paymentSources = ["UPI", "Credit Card", "Debit Card", "Cash", "Wallet"];
+const customPrimaryTagsStorageKey = "expense_custom_primary_tags";
+const addNewCategoryValue = "__add_new_category__";
 
 const defaultForm = () => ({
   amount: "",
@@ -44,6 +51,18 @@ export default function ExpenseForm({
   const { addExpense, updateExpense } = useContext(ExpenseContext);
   const [form, setForm] = useState(defaultForm());
   const [dateInput, setDateInput] = useState(null);
+  const [customPrimaryTags, setCustomPrimaryTags] = useState(() => {
+    const saved = localStorage.getItem(customPrimaryTagsStorageKey);
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [newCategoryDialogOpen, setNewCategoryDialogOpen] = useState(false);
+  const [newCategoryValue, setNewCategoryValue] = useState("");
 
   useEffect(() => {
     if (selectedExpense) {
@@ -62,10 +81,41 @@ export default function ExpenseForm({
   }, [selectedExpense]);
 
   const handleChange = (event) => {
+    if (
+      event.target.name === "primary_tag" &&
+      event.target.value === addNewCategoryValue
+    ) {
+      setNewCategoryValue("");
+      setNewCategoryDialogOpen(true);
+      return;
+    }
     setForm((current) => ({
       ...current,
       [event.target.name]: event.target.value,
     }));
+  };
+
+  const handleSaveNewCategory = () => {
+    const trimmed = newCategoryValue.trim();
+    if (!trimmed) return;
+
+    const normalized = trimmed.toLowerCase();
+    const existing = [...primaryTags, ...customPrimaryTags].some(
+      (tag) => tag.trim().toLowerCase() === normalized,
+    );
+
+    const nextCustomTags = existing
+      ? customPrimaryTags
+      : [...customPrimaryTags, trimmed];
+
+    setCustomPrimaryTags(nextCustomTags);
+    localStorage.setItem(
+      customPrimaryTagsStorageKey,
+      JSON.stringify(nextCustomTags),
+    );
+
+    setForm((current) => ({ ...current, primary_tag: trimmed }));
+    setNewCategoryDialogOpen(false);
   };
 
   const handleSubmit = async (event) => {
@@ -84,6 +134,7 @@ export default function ExpenseForm({
   };
 
   const isDashboardVariant = variant === "dashboard";
+  const allPrimaryTags = [...primaryTags, ...customPrimaryTags];
 
   return (
     <Paper sx={{ p: 3, height: "100%" }}>
@@ -124,11 +175,13 @@ export default function ExpenseForm({
             onChange={handleChange}
             fullWidth
           >
-            {primaryTags.map((option) => (
+            {allPrimaryTags.map((option) => (
               <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>
             ))}
+            <Divider />
+            <MenuItem value={addNewCategoryValue}>+ Add new category</MenuItem>
           </TextField>
 
           <TextField
@@ -221,6 +274,41 @@ export default function ExpenseForm({
           </Button>
         )}
       </Box>
+
+      <Dialog
+        open={newCategoryDialogOpen}
+        onClose={() => setNewCategoryDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Add a category</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Category name"
+            fullWidth
+            value={newCategoryValue}
+            onChange={(event) => setNewCategoryValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                handleSaveNewCategory();
+              }
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNewCategoryDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={handleSaveNewCategory}
+            disabled={!newCategoryValue.trim()}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

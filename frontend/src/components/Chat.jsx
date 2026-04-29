@@ -1,4 +1,5 @@
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
+import DeleteSweepRoundedIcon from "@mui/icons-material/DeleteSweepRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import {
   Box,
@@ -17,13 +18,33 @@ import TypingIndicator from "./TypingIndicator";
 
 const lowerCardHeight = { xs: 400, lg: "calc(100vh - 500px)" };
 
+function createChatMessage(role, text, options = {}) {
+  const id =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  return {
+    id,
+    role,
+    text,
+    loading: Boolean(options.loading),
+  };
+}
+
 export default function Chat() {
-  const { fetchAgentResponse } = useContext(ExpenseContext);
+  const { fetchAgentResponse, sessionId } = useContext(ExpenseContext);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
   const chatMessagesRef = useRef(null);
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
+  const chatStorageKey = sessionId
+    ? `expense_chat_messages_${sessionId}`
+    : "expense_chat_messages";
+  const chatInputStorageKey = sessionId
+    ? `expense_chat_input_${sessionId}`
+    : "expense_chat_input";
   const cardSurface = {
     background: isDark
       ? "linear-gradient(180deg, rgba(15,23,42,0.96) 0%, rgba(17,24,39,0.92) 100%)"
@@ -31,22 +52,54 @@ export default function Chat() {
     borderColor: isDark ? alpha("#94A3B8", 0.12) : "#E2E8F0",
   };
 
-  const handleChatSubmit = async (event) => {
-    event.preventDefault();
+  useEffect(() => {
+    const savedMessages = localStorage.getItem(chatStorageKey);
+    if (savedMessages) {
+      try {
+        const parsed = JSON.parse(savedMessages);
+        if (Array.isArray(parsed)) {
+          setChatMessages(parsed);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    const savedInput = localStorage.getItem(chatInputStorageKey);
+    if (typeof savedInput === "string") {
+      setChatInput(savedInput);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatStorageKey, chatInputStorageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(chatStorageKey, JSON.stringify(chatMessages));
+  }, [chatMessages, chatStorageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(chatInputStorageKey, chatInput);
+  }, [chatInput, chatInputStorageKey]);
+
+  const handleClearChat = () => {
+    setChatInput("");
+    setChatMessages([]);
+    localStorage.removeItem(chatStorageKey);
+    localStorage.removeItem(chatInputStorageKey);
+  };
+
+  const sendMessage = async () => {
     const trimmedMessage = chatInput.trim();
+    if (!trimmedMessage) return;
 
     setChatInput("");
     setChatMessages((currentMessages) => [
       ...currentMessages,
-      {
-        role: "user",
-        text: trimmedMessage,
-      },
+      createChatMessage("user", trimmedMessage),
     ]);
     await new Promise((res) => setTimeout(res, 1000));
     setChatMessages((prev) => [
       ...prev,
-      { role: "assistant", text: "Typing ...", loading: true },
+      createChatMessage("assistant", "Typing ...", { loading: true }),
     ]);
 
     const payload = {
@@ -57,12 +110,20 @@ export default function Chat() {
 
     setChatMessages((prev) => {
       const updated = [...prev];
+      const last = updated[updated.length - 1];
       updated[updated.length - 1] = {
+        ...last,
         role: "assistant",
         text: botResponse.response,
+        loading: false,
       };
       return updated;
     });
+  };
+
+  const handleChatSubmit = async (event) => {
+    event.preventDefault();
+    await sendMessage();
   };
 
   useEffect(() => {
@@ -86,9 +147,24 @@ export default function Chat() {
         ...cardSurface,
       }}
     >
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Ask Expenso
-      </Typography>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ mb: 2 }}
+      >
+        <Typography variant="h6">Ask Expenso</Typography>
+        <IconButton
+          onClick={handleClearChat}
+          aria-label="Clear chat"
+          sx={{
+            border: "1px solid",
+            borderColor: alpha("#94A3B8", isDark ? 0.22 : 0.35),
+          }}
+        >
+          <DeleteSweepRoundedIcon fontSize="small" />
+        </IconButton>
+      </Stack>
 
       <Stack
         ref={chatMessagesRef}
@@ -125,6 +201,17 @@ export default function Chat() {
                   : isDark
                     ? alpha("#94A3B8", 0.12)
                     : "#F1F5F9",
+                animation: "chatMessageIn 180ms ease-out",
+                "@keyframes chatMessageIn": {
+                  from: {
+                    opacity: 0,
+                    transform: "translateY(6px)",
+                  },
+                  to: {
+                    opacity: 1,
+                    transform: "translateY(0)",
+                  },
+                },
               }}
             >
               <Typography
@@ -165,7 +252,17 @@ export default function Chat() {
           name="chat-input"
           value={chatInput}
           onChange={(event) => setChatInput(event.target.value)}
-          placeholder="Ask me about your April spending..."
+          onKeyDown={(event) => {
+            if (
+              event.key === "Enter" &&
+              !event.shiftKey &&
+              !event.nativeEvent.isComposing
+            ) {
+              event.preventDefault();
+              sendMessage();
+            }
+          }}
+          placeholder="Ask about spending, budgets, categories, or trends..."
           fullWidth
           multiline
           maxRows={4}

@@ -25,6 +25,8 @@ class UserSettings(Base):
     budget_goal = Column(Numeric(10, 2), nullable=False, default=50000.0)
     currency = Column(String(10), nullable=False, default="INR")
     email_alerts = Column(String(20), nullable=False, default="enabled")
+    chat_daily_count = Column(Integer, nullable=False, default=0)
+    chat_daily_date = Column(Date, nullable=True)
 
     user = relationship("User", back_populates="settings")
 

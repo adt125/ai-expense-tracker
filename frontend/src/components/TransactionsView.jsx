@@ -14,6 +14,7 @@ import {
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import { DataGrid } from "@mui/x-data-grid";
+import { alpha, useTheme } from "@mui/material/styles";
 import { ExpenseContext } from "../context/ExpenseContext";
 
 function formatCurrency(value) {
@@ -48,6 +49,8 @@ export default function TransactionsView({ onEditExpense }) {
   const [query, setQuery] = useState("");
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [activeRow, setActiveRow] = useState(null);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
 
   const filteredRows = useMemo(() => {
     const lowerCaseQuery = query.trim().toLowerCase();
@@ -107,7 +110,16 @@ export default function TransactionsView({ onEditExpense }) {
       flex: 0.9,
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <Chip label={params.value} size="small" color="secondary" />
+          <Chip
+            label={params.value}
+            size="small"
+            sx={{
+              fontWeight: 700,
+              bgcolor: alpha("#10B981", isDark ? 0.22 : 0.14),
+              color: isDark ? "#D1FAE5" : "#065F46",
+              border: `1px solid ${alpha("#10B981", isDark ? 0.4 : 0.26)}`,
+            }}
+          />
         </Box>
       ),
     },
@@ -119,7 +131,16 @@ export default function TransactionsView({ onEditExpense }) {
       renderCell: (params) => (
         <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Stack direction="row" spacing={0.75}>
-            <Chip label={params.value} size="small" variant="outlined" />
+            <Chip
+              label={params.value}
+              size="small"
+              variant="outlined"
+              sx={{
+                borderColor: isDark ? alpha("#94A3B8", 0.38) : "#CBD5E1",
+                color: "text.primary",
+                bgcolor: isDark ? alpha("#94A3B8", 0.08) : alpha("#64748B", 0.06),
+              }}
+            />
           </Stack>
         </Box>
       ),
@@ -227,12 +248,20 @@ export default function TransactionsView({ onEditExpense }) {
           sx={{
             border: "none",
             "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#F8FAFC",
-              borderBottom: "1px solid #E2E8F0",
+              backgroundColor: isDark ? alpha("#0B1220", 0.9) : "#F8FAFC",
+              borderBottom: `1px solid ${isDark ? "#1E293B" : "#E2E8F0"}`,
             },
             "& .MuiDataGrid-cell": {
-              borderBottom: "1px solid #E2E8F0",
+              borderBottom: `1px solid ${isDark ? "#1E293B" : "#E2E8F0"}`,
               alignItems: "center",
+            },
+            "& .MuiDataGrid-row:hover": {
+              backgroundColor: isDark
+                ? alpha("#94A3B8", 0.06)
+                : alpha("#6366F1", 0.04),
+            },
+            "& .MuiDataGrid-footerContainer": {
+              borderTop: `1px solid ${isDark ? "#1E293B" : "#E2E8F0"}`,
             },
           }}
         />

@@ -4,7 +4,7 @@ from .expense_agent import expense_analysis_agent
 from google.genai import types
 import os
 from dotenv import load_dotenv, find_dotenv
-from .. import schemas
+from .. import schemas, models
 
 load_dotenv(find_dotenv())
 
@@ -38,10 +38,15 @@ async def delete_session(user_id: str, session_id: str):
         )
 
 
-async def run(chat_input: schemas.ChatInput, user_id: str, session_id: str) -> str:
-    user_id = str(user_id)
+async def run(
+    chat_input: schemas.ChatInput, current_user: models.User, session_id: str
+) -> str:
+    user_id = str(current_user.id)
     query = chat_input.query
-    prompt = query + f" the current user id is {user_id}"
+    prompt = (
+        query
+        + f" the current user id is {current_user.id} and name is {current_user.full_name}"
+    )
     content = types.Content(role="user", parts=[types.Part(text=prompt)])
 
     final_response_content = "No final response received."
