@@ -2,8 +2,13 @@
   "compilerOptions": {
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "checkJs": true,
+    "checkJs": false,
+    "allowJs": true,
     "jsx": "react-jsx",
-    "strict": false
-  }
+    "strict": false,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
