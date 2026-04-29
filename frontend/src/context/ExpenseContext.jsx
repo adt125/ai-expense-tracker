@@ -28,6 +28,37 @@ export function ExpenseProvider({ children }) {
   const [report, setReport] = useState(null);
   const [userSettings, setUserSettings] = useState(null);
 
+  const clearAuthState = () => {
+    setToken(null);
+    setSessionId(null);
+    setCurrentUser(null);
+    setExpenses([]);
+    setSummary(null);
+    setReport(null);
+    setUserSettings(null);
+    localStorage.removeItem("expense_user");
+    localStorage.removeItem("expense_agent_session_id");
+  };
+
+  useEffect(() => {
+    const interceptorId = api.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const status = error?.response?.status;
+        const url = error?.config?.url || "";
+        if (status === 401 && !url.includes("/auth/login")) {
+          // Token is missing/expired; send the user back to login by clearing auth state.
+          clearAuthState();
+        }
+        return Promise.reject(error);
+      },
+    );
+
+    return () => {
+      api.interceptors.response.eject(interceptorId);
+    };
+  }, []);
+
   useEffect(() => {
     const loadUserData = () => {
       fetchExpenses();
@@ -93,15 +124,7 @@ export function ExpenseProvider({ children }) {
         console.warn("Unable to terminate agent session", error);
       }
     }
-    setToken(null);
-    setSessionId(null);
-    setCurrentUser(null);
-    setExpenses([]);
-    setSummary(null);
-    setReport(null);
-    setUserSettings(null);
-    localStorage.removeItem("expense_user");
-    localStorage.removeItem("expense_agent_session_id");
+    clearAuthState();
   };
 
   const fetchExpenses = async () => {
