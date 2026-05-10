@@ -7,10 +7,10 @@ import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import Grid2 from "@mui/material/Unstable_Grid2";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useMemo, useRef, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { ExpenseContext } from "../context/ExpenseContext";
-import Chat from "./Chat";
+import ChatContainer from "./Chat/ChatContainer";
 import ExpenseForm from "./ExpenseForm";
 
 const categoryColors = ["#6366F1", "#10B981", "#F59E0B", "#F43F5E", "#0F766E"];
@@ -355,7 +355,7 @@ export default function Dashboard({
       </Grid2>
 
       <Grid2 xs={12} md={4}>
-        <Chat />
+        <ChatContainer />
       </Grid2>
     </Grid2>
   );
