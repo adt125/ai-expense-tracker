@@ -1,13 +1,11 @@
-import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import DeleteSweepRoundedIcon from "@mui/icons-material/DeleteSweepRounded";
-import SendRoundedIcon from "@mui/icons-material/SendRounded";
-import { Box, IconButton, Paper, TextField, Typography } from "@mui/material";
+import { Box, IconButton, Paper, Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ExpenseContext } from "../../context/ExpenseContext";
 import "../../styles/Chat.css";
-import ChatMessage from "./ChatMessage";
 import ChatInputBox from "./ChatInputBox";
+import ChatMessage from "./ChatMessage";
 
 function createChatMessage(role, text, options = {}) {
   const id =

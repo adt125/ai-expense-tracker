@@ -1,7 +1,6 @@
-import { Box, TextField, IconButton } from "@mui/material";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
-import { useState } from "react";
+import { Box, IconButton, TextField } from "@mui/material";
 
 export default function ChatInputBox({ sendMessage, chatInput, setChatInput }) {
   const handleChatSubmit = async (event) => {
