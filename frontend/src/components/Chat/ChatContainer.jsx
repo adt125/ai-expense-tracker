@@ -131,7 +131,7 @@ export default function ChatContainer() {
 
       <Box ref={chatMessagesRef} className="chat__messages">
         {chatMessages.map((message) => (
-          <ChatMessage message={message} />
+          <ChatMessage key={message.id} message={message} />
         ))}
       </Box>
 
