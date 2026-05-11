@@ -6,7 +6,7 @@ import ShoppingBasketRoundedIcon from "@mui/icons-material/ShoppingBasketRounded
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import Grid2 from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Grid";
 import { useContext, useMemo, useRef, useState } from "react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { ExpenseContext } from "../context/ExpenseContext";
@@ -111,8 +111,8 @@ export default function Dashboard({
   };
 
   return (
-    <Grid2 container spacing={2.5}>
-      <Grid2 xs={12} md={4}>
+    <Grid container spacing={2.5}>
+      <Grid item xs={12} md={4}>
         <Paper sx={{ p: 3, minHeight: 282, ...cardSurface }}>
           <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
             Balance Hero Card
@@ -132,7 +132,7 @@ export default function Dashboard({
             {formatCurrency(availableBalance)}
           </Typography>
 
-          <Grid2 container spacing={2}>
+          <Grid container spacing={2}>
             {[
               {
                 label: `Goal: ${formatCurrency(goal)}`,
@@ -145,7 +145,7 @@ export default function Dashboard({
                 caption: `${Math.round(targetProgress)}% of target`,
               },
             ].map((item) => (
-              <Grid2 xs={12} sm={6} key={item.label}>
+              <Grid item xs={12} sm={6} key={item.label}>
                 <Typography variant="body1" sx={{ mb: 1 }}>
                   {item.label}
                 </Typography>
@@ -171,22 +171,22 @@ export default function Dashboard({
                 <Typography variant="body2" color="text.secondary">
                   {item.caption}
                 </Typography>
-              </Grid2>
+              </Grid>
             ))}
-          </Grid2>
+          </Grid>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={8}>
+      <Grid item xs={12} md={8}>
         <ExpenseForm
           variant="dashboard"
           selectedExpense={selectedExpense}
           onClearSelection={onClearSelection}
           onSubmitSuccess={onExpenseSaved}
         />
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={4}>
+      <Grid item xs={12} md={4}>
         <Paper
           sx={{
             p: 3,
@@ -262,9 +262,9 @@ export default function Dashboard({
             ))}
           </Stack>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={4}>
+      <Grid item xs={12} md={4}>
         <Paper
           sx={{
             p: 3,
@@ -352,11 +352,11 @@ export default function Dashboard({
             )}
           </Stack>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={4}>
+      <Grid item xs={12} md={4}>
         <ChatContainer />
-      </Grid2>
-    </Grid2>
+      </Grid>
+    </Grid>
   );
 }

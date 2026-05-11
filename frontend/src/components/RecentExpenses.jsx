@@ -1,53 +1,10 @@
 import { useContext } from "react";
-import {
-  Avatar,
-  Box,
-  Button,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
-import LocalCafeRoundedIcon from "@mui/icons-material/LocalCafeRounded";
-import ShoppingBasketRoundedIcon from "@mui/icons-material/ShoppingBasketRounded";
-import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
-import CommuteRoundedIcon from "@mui/icons-material/CommuteRounded";
+import { Avatar, Box, Button, Paper, Stack, Typography } from "@mui/material";
+
 import { alpha, useTheme } from "@mui/material/styles";
 import { ExpenseContext } from "../context/ExpenseContext";
-
-const iconMap = {
-  Food: LocalCafeRoundedIcon,
-  Shopping: ShoppingBasketRoundedIcon,
-  Utilities: BoltRoundedIcon,
-  Fuel: CommuteRoundedIcon,
-};
-
-function formatCurrency(value) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
-}
-
-function getDateLabel(rawDate) {
-  const target = new Date(rawDate);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  const normalizedTarget = target.toDateString();
-  if (normalizedTarget === today.toDateString()) {
-    return "Today";
-  }
-  if (normalizedTarget === yesterday.toDateString()) {
-    return "Yesterday";
-  }
-
-  return new Intl.DateTimeFormat("en", {
-    day: "numeric",
-    month: "short",
-  }).format(target);
-}
+import { getDateLabel, formatCurrency } from "../utility/utility";
+import { iconMap } from "../utility/constants";
 
 export default function RecentExpenses({ onViewAll }) {
   const { expenses } = useContext(ExpenseContext);
@@ -57,7 +14,12 @@ export default function RecentExpenses({ onViewAll }) {
 
   return (
     <Paper sx={{ p: 3, height: "100%" }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        mb={2}
+      >
         <Typography variant="h6">Recent Transactions</Typography>
         <Button size="small" onClick={onViewAll}>
           View all
@@ -67,7 +29,8 @@ export default function RecentExpenses({ onViewAll }) {
       <Stack spacing={1.5}>
         {recent.length ? (
           recent.map((expense) => {
-            const IconComponent = iconMap[expense.primary_tag] || ShoppingBasketRoundedIcon;
+            const IconComponent =
+              iconMap[expense.primary_tag] || iconMap["default"];
 
             return (
               <Paper
@@ -80,7 +43,11 @@ export default function RecentExpenses({ onViewAll }) {
                     : alpha("#F8FAFC", 0.9),
                 }}
               >
-                <Stack direction="row" justifyContent="space-between" spacing={1.5}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  spacing={1.5}
+                >
                   <Stack direction="row" spacing={1.5} alignItems="center">
                     <Avatar
                       sx={{
@@ -101,7 +68,10 @@ export default function RecentExpenses({ onViewAll }) {
                       </Typography>
                     </Box>
                   </Stack>
-                  <Typography fontWeight={700} color={isDark ? "text.primary" : "inherit"}>
+                  <Typography
+                    fontWeight={700}
+                    color={isDark ? "text.primary" : "inherit"}
+                  >
                     {formatCurrency(expense.amount)}
                   </Typography>
                 </Stack>

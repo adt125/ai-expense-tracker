@@ -28,7 +28,7 @@ const primaryTags = [
   "Travel",
 ];
 const secondaryTags = ["Need", "Want", "Investment"];
-const paymentSources = ["UPI", "Credit Card", "Debit Card", "Cash", "Wallet"];
+const paymentSources = ["UPI", "Credit Card", "Debit Card", "Cash"];
 const customPrimaryTagsStorageKey = "expense_custom_primary_tags";
 const addNewCategoryValue = "__add_new_category__";
 
@@ -299,7 +299,9 @@ export default function ExpenseForm({
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setNewCategoryDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setNewCategoryDialogOpen(false)}>
+            Cancel
+          </Button>
           <Button
             variant="contained"
             onClick={handleSaveNewCategory}
