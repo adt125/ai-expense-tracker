@@ -1,5 +1,19 @@
 import { rangeConfig } from "./constants";
 
+export function createChatMessage(role, text, options = {}) {
+  const id =
+    typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  return {
+    id,
+    role,
+    text,
+    loading: Boolean(options.loading),
+  };
+}
+
 export function getDateLabel(rawDate) {
   const target = new Date(rawDate);
   const today = new Date();
