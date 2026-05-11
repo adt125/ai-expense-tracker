@@ -31,79 +31,17 @@ import {
 } from "recharts";
 import { ExpenseContext } from "../context/ExpenseContext";
 import { formatCurrency } from "../utility/utility";
-import { iconMap } from "../utility/constants";
-
-const rangeConfig = {
-  weekly: 7,
-  monthly: 31,
-  yearly: 365,
-};
-
-const chartColors = ["#6366F1", "#10B981", "#F59E0B", "#F43F5E", "#0F766E"];
-const paymentSourceColors = [
-  "#38BDF8",
-  "#34D399",
-  "#FBBF24",
-  "#FB7185",
-  "#A78BFA",
-];
-
-function getRangeExpenses(expenses, range) {
-  const days = rangeConfig[range];
-  const now = new Date();
-  const cutoff = new Date();
-  cutoff.setDate(now.getDate() - days + 1);
-  return expenses.filter((expense) => new Date(expense.date) >= cutoff);
-}
-
-function buildCategoryTotals(expenses) {
-  const grouped = expenses.reduce((accumulator, expense) => {
-    const key = expense.primary_tag || "Other";
-    accumulator[key] = (accumulator[key] || 0) + Number(expense.amount);
-    return accumulator;
-  }, {});
-
-  return Object.entries(grouped)
-    .map(([name, value]) => ({ name, value }))
-    .sort((first, second) => second.value - first.value);
-}
-
-function buildTotalsByField(expenses, field, fallback = "Other") {
-  const grouped = expenses.reduce((accumulator, expense) => {
-    const key = expense[field] || fallback;
-    accumulator[key] = (accumulator[key] || 0) + Number(expense.amount);
-    return accumulator;
-  }, {});
-
-  return Object.entries(grouped)
-    .map(([name, value]) => ({ name, value }))
-    .sort((first, second) => second.value - first.value);
-}
-
-function buildDailySpendData(expenses) {
-  const grouped = new Map();
-
-  expenses.forEach((expense) => {
-    const date = new Date(expense.date);
-    const sortKey = date.toISOString().slice(0, 10);
-    const label = new Intl.DateTimeFormat("en", {
-      day: "numeric",
-      month: "short",
-    }).format(date);
-    const current = grouped.get(sortKey) || { day: label, amount: 0 };
-    grouped.set(sortKey, {
-      ...current,
-      amount: current.amount + Number(expense.amount),
-    });
-  });
-
-  return Array.from(grouped.entries())
-    .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
-    .map(([, values]) => ({
-      day: values.day,
-      amount: Math.round(values.amount),
-    }));
-}
+import {
+  iconMap,
+  chartColors,
+  paymentSourceColors,
+} from "../utility/constants";
+import {
+  getRangeExpenses,
+  buildCategoryTotals,
+  buildTotalsByField,
+  buildDailySpendData,
+} from "../utility/utility";
 
 export default function ReportCard() {
   const { expenses, summary, report } = useContext(ExpenseContext);
