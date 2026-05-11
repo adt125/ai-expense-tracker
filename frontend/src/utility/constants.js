@@ -12,3 +12,24 @@ export const iconMap = {
   default: ShoppingBasketRoundedIcon,
   Rent: HomeRoundedIcon,
 };
+
+export const rangeConfig = {
+  weekly: 7,
+  monthly: 31,
+  yearly: 365,
+};
+
+export const chartColors = [
+  "#6366F1",
+  "#10B981",
+  "#F59E0B",
+  "#F43F5E",
+  "#0F766E",
+];
+export const paymentSourceColors = [
+  "#38BDF8",
+  "#34D399",
+  "#FBBF24",
+  "#FB7185",
+  "#A78BFA",
+];
