@@ -3,6 +3,7 @@ import {
   Avatar,
   Badge,
   Box,
+  CircularProgress,
   CssBaseline,
   Divider,
   Drawer,
@@ -52,6 +53,7 @@ function App() {
   const [view, setView] = useState("dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mode, setMode] = useState(
     () => localStorage.getItem("expense_theme_mode") || "light",
   );
@@ -208,6 +210,15 @@ function App() {
     }
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   const renderPage = () => {
     if (view === "analytics") {
       return <ReportCard />;
@@ -285,13 +296,21 @@ function App() {
       <Divider sx={{ my: 2 }} />
 
       <List disablePadding>
-        <ListItemButton onClick={logout} sx={{ py: 1.2 }}>
+        <ListItemButton
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          sx={{ py: 1.2 }}
+        >
           <ListItemIcon sx={{ minWidth: 38 }}>
-            <SettingsRoundedIcon />
+            {isLoggingOut ? (
+              <CircularProgress color="inherit" size={20} />
+            ) : (
+              <SettingsRoundedIcon />
+            )}
           </ListItemIcon>
           <ListItemText
-            primary="Logout"
-            secondary="Sign out safely"
+            primary={isLoggingOut ? "Logging out..." : "Logout"}
+            secondary={isLoggingOut ? "Ending your session" : "Sign out safely"}
             primaryTypographyProps={{ fontSize: "0.92rem" }}
             secondaryTypographyProps={{ fontSize: "0.78rem" }}
           />

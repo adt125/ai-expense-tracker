@@ -4,6 +4,7 @@ import {
   AlertTitle,
   Box,
   Button,
+  CircularProgress,
   Paper,
   Stack,
   TextField,
@@ -11,7 +12,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Grid";
 import { alpha } from "@mui/material/styles";
 import { ExpenseContext } from "../context/ExpenseContext";
 
@@ -22,6 +23,7 @@ export default function AuthForm() {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState(defaultValues);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (event) => {
     if (errorMessage) {
@@ -49,6 +51,7 @@ export default function AuthForm() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setErrorMessage("");
+    setIsSubmitting(true);
 
     try {
       if (mode === "login") {
@@ -59,12 +62,14 @@ export default function AuthForm() {
       await register(form);
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Grid2 container spacing={3} alignItems="stretch">
-      <Grid2 xs={12} md={5}>
+    <Grid container spacing={3} alignItems="stretch">
+      <Grid item xs={12} md={5}>
         <Paper
           sx={{
             p: { xs: 3, md: 4 },
@@ -106,9 +111,9 @@ export default function AuthForm() {
             ))}
           </Stack>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={7}>
+      <Grid item xs={12} md={7}>
         <Paper sx={{ p: { xs: 3, md: 4 } }}>
           <Stack
             direction={{ xs: "column", sm: "row" }}
@@ -127,6 +132,7 @@ export default function AuthForm() {
               value={mode}
               exclusive
               onChange={(_, value) => value && setMode(value)}
+              disabled={isSubmitting}
             >
               <ToggleButton value="login">Login</ToggleButton>
               <ToggleButton value="register">Register</ToggleButton>
@@ -148,6 +154,7 @@ export default function AuthForm() {
                 type="email"
                 value={form.email}
                 onChange={handleChange}
+                disabled={isSubmitting}
                 required
                 fullWidth
               />
@@ -157,6 +164,7 @@ export default function AuthForm() {
                   name="full_name"
                   value={form.full_name}
                   onChange={handleChange}
+                  disabled={isSubmitting}
                   fullWidth
                 />
               )}
@@ -166,16 +174,34 @@ export default function AuthForm() {
                 type="password"
                 value={form.password}
                 onChange={handleChange}
+                disabled={isSubmitting}
                 required
                 fullWidth
               />
-              <Button type="submit" variant="contained" size="large" sx={{ py: 1.3, mt: 1 }}>
-                {mode === "login" ? "Enter Dashboard" : "Create Account"}
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                disabled={isSubmitting}
+                startIcon={
+                  isSubmitting ? (
+                    <CircularProgress color="inherit" size={18} />
+                  ) : null
+                }
+                sx={{ py: 1.3, mt: 1 }}
+              >
+                {isSubmitting
+                  ? mode === "login"
+                    ? "Signing in..."
+                    : "Creating account..."
+                  : mode === "login"
+                    ? "Enter Dashboard"
+                    : "Create Account"}
               </Button>
             </Stack>
           </Box>
         </Paper>
-      </Grid2>
-    </Grid2>
+      </Grid>
+    </Grid>
   );
 }

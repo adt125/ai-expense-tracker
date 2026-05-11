@@ -12,11 +12,7 @@ import {
   Tabs,
   Typography,
 } from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2";
-import FastfoodRoundedIcon from "@mui/icons-material/FastfoodRounded";
-import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import ShoppingBagRoundedIcon from "@mui/icons-material/ShoppingBagRounded";
+import Grid from "@mui/material/Grid";
 import PaidRoundedIcon from "@mui/icons-material/PaidRounded";
 import { alpha, useTheme } from "@mui/material/styles";
 import {
@@ -34,6 +30,8 @@ import {
   YAxis,
 } from "recharts";
 import { ExpenseContext } from "../context/ExpenseContext";
+import { formatCurrency } from "../utility/utility";
+import { iconMap } from "../utility/constants";
 
 const rangeConfig = {
   weekly: 7,
@@ -41,23 +39,14 @@ const rangeConfig = {
   yearly: 365,
 };
 
-const categoryIcons = {
-  Food: FastfoodRoundedIcon,
-  Fuel: DirectionsCarRoundedIcon,
-  Rent: HomeRoundedIcon,
-  Shopping: ShoppingBagRoundedIcon,
-};
-
 const chartColors = ["#6366F1", "#10B981", "#F59E0B", "#F43F5E", "#0F766E"];
-const paymentSourceColors = ["#38BDF8", "#34D399", "#FBBF24", "#FB7185", "#A78BFA"];
-
-function formatCurrency(value) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2,
-  }).format(Number(value || 0));
-}
+const paymentSourceColors = [
+  "#38BDF8",
+  "#34D399",
+  "#FBBF24",
+  "#FB7185",
+  "#A78BFA",
+];
 
 function getRangeExpenses(expenses, range) {
   const days = rangeConfig[range];
@@ -153,7 +142,9 @@ export default function ReportCard() {
   const remaining = Math.max(budget - spent, 0);
   const forecast = Number(summary?.predicted_total || 0);
   const chartAxisColor = isDark ? "#E2E8F0" : "#334155";
-  const chartGridColor = isDark ? alpha("#CBD5E1", 0.16) : alpha("#64748B", 0.18);
+  const chartGridColor = isDark
+    ? alpha("#CBD5E1", 0.16)
+    : alpha("#64748B", 0.18);
   const dailySpendColor = isDark ? "#38BDF8" : "#6366F1";
   const tooltipStyle = {
     borderRadius: 12,
@@ -170,8 +161,8 @@ export default function ReportCard() {
   };
 
   return (
-    <Grid2 container spacing={2.5}>
-      <Grid2 xs={12}>
+    <Grid container spacing={2.5}>
+      <Grid item xs={12}>
         <Paper sx={{ p: 2 }}>
           <Tabs
             value={range}
@@ -185,9 +176,9 @@ export default function ReportCard() {
             <Tab value="yearly" label="Yearly" />
           </Tabs>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={4}>
+      <Grid item xs={12} md={4}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Typography variant="h6">Payment Sources</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -225,14 +216,20 @@ export default function ReportCard() {
                     labelStyle={tooltipLabelStyle}
                     itemStyle={{ color: isDark ? "#E2E8F0" : "#0F172A" }}
                     cursor={{
-                      fill: isDark ? alpha("#CBD5E1", 0.08) : alpha("#64748B", 0.08),
+                      fill: isDark
+                        ? alpha("#CBD5E1", 0.08)
+                        : alpha("#64748B", 0.08),
                     }}
                   />
                   <Bar dataKey="value" radius={[0, 8, 8, 0]}>
                     {paymentSourceTotals.map((entry, index) => (
                       <Cell
                         key={entry.name}
-                        fill={paymentSourceColors[index % paymentSourceColors.length]}
+                        fill={
+                          paymentSourceColors[
+                            index % paymentSourceColors.length
+                          ]
+                        }
                       />
                     ))}
                   </Bar>
@@ -251,9 +248,9 @@ export default function ReportCard() {
             )}
           </Box>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={4}>
+      <Grid item xs={12} md={4}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Typography variant="h6">Daily Spend</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -271,43 +268,47 @@ export default function ReportCard() {
                       x2="0"
                       y2="1"
                     >
-	                      <stop
-	                        offset="5%"
-	                        stopColor={dailySpendColor}
-	                        stopOpacity={isDark ? 0.34 : 0.28}
-	                      />
-	                      <stop offset="95%" stopColor={dailySpendColor} stopOpacity={0} />
-	                    </linearGradient>
-	                  </defs>
-	                  <CartesianGrid
-	                    strokeDasharray="3 3"
-	                    vertical={false}
-	                    stroke={chartGridColor}
-	                  />
-	                  <XAxis
-	                    dataKey="day"
-	                    tick={{
-	                      fill: chartAxisColor,
-	                      fontSize: 12,
-	                      fontWeight: 600,
-	                    }}
-	                    tickLine={{ stroke: chartGridColor }}
-	                    axisLine={{ stroke: chartGridColor }}
-	                  />
-	                  <YAxis hide />
-	                  <Tooltip
-	                    formatter={(value) => formatCurrency(value)}
-	                    contentStyle={tooltipStyle}
-	                    labelStyle={tooltipLabelStyle}
-	                    itemStyle={{ color: isDark ? "#E2E8F0" : "#0F172A" }}
-	                  />
-	                  <Area
-	                    type="monotone"
-	                    dataKey="amount"
-	                    stroke={dailySpendColor}
-	                    fill="url(#dailySpendFill)"
-	                    strokeWidth={3}
-	                  />
+                      <stop
+                        offset="5%"
+                        stopColor={dailySpendColor}
+                        stopOpacity={isDark ? 0.34 : 0.28}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor={dailySpendColor}
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke={chartGridColor}
+                  />
+                  <XAxis
+                    dataKey="day"
+                    tick={{
+                      fill: chartAxisColor,
+                      fontSize: 12,
+                      fontWeight: 600,
+                    }}
+                    tickLine={{ stroke: chartGridColor }}
+                    axisLine={{ stroke: chartGridColor }}
+                  />
+                  <YAxis hide />
+                  <Tooltip
+                    formatter={(value) => formatCurrency(value)}
+                    contentStyle={tooltipStyle}
+                    labelStyle={tooltipLabelStyle}
+                    itemStyle={{ color: isDark ? "#E2E8F0" : "#0F172A" }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="amount"
+                    stroke={dailySpendColor}
+                    fill="url(#dailySpendFill)"
+                    strokeWidth={3}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -323,9 +324,9 @@ export default function ReportCard() {
             )}
           </Box>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={4}>
+      <Grid item xs={12} md={4}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Typography variant="h6">Needs, Wants, Investment</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -392,9 +393,9 @@ export default function ReportCard() {
             ))}
           </Stack>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={3.5}>
+      <Grid item xs={12} md={3.5}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Typography variant="h6">Spending Insight</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
@@ -458,9 +459,9 @@ export default function ReportCard() {
             </Typography>
           </Stack>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={5}>
+      <Grid item xs={12} md={5}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Typography variant="h6">Category Mix</Typography>
           <Typography variant="body2" color="text.secondary">
@@ -554,17 +555,16 @@ export default function ReportCard() {
             ))}
           </Stack>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={3.5}>
+      <Grid item xs={12} md={3.5}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Typography variant="h6" gutterBottom>
             Top Categories
           </Typography>
           <List disablePadding>
             {categoryTotals.slice(0, 5).map((category, index) => {
-              const IconComponent =
-                categoryIcons[category.name] || PaidRoundedIcon;
+              const IconComponent = iconMap[category.name] || PaidRoundedIcon;
               return (
                 <ListItem
                   key={category.name}
@@ -599,8 +599,7 @@ export default function ReportCard() {
             })}
           </List>
         </Paper>
-      </Grid2>
-
-    </Grid2>
+      </Grid>
+    </Grid>
   );
 }

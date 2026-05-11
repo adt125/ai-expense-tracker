@@ -11,7 +11,7 @@ import {
   Typography,
   Button,
 } from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Grid";
 import { alpha } from "@mui/material/styles";
 import { ExpenseContext } from "../context/ExpenseContext";
 
@@ -59,8 +59,8 @@ export default function BudgetsGoalsView() {
   }, [budgetTarget, expenses]);
 
   return (
-    <Grid2 container spacing={2.5}>
-      <Grid2 xs={12} md={5}>
+    <Grid container spacing={2.5}>
+      <Grid item xs={12} md={5}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Typography variant="h6" gutterBottom>
             Budget Controls
@@ -135,9 +135,9 @@ export default function BudgetsGoalsView() {
             })}
           </Stack>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12} md={7}>
+      <Grid item xs={12} md={7}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Stack
             direction={{ xs: "column", md: "row" }}
@@ -164,9 +164,9 @@ export default function BudgetsGoalsView() {
             </AvatarGroup>
           </Stack>
 
-          <Grid2 container spacing={2}>
+          <Grid container spacing={2}>
             {householdMembers.map((member, index) => (
-              <Grid2 xs={12} md={4} key={member.name}>
+              <Grid item xs={12} md={4} key={member.name}>
                 <Paper
                   sx={{
                     p: 2,
@@ -186,13 +186,13 @@ export default function BudgetsGoalsView() {
                     Estimated share this month
                   </Typography>
                 </Paper>
-              </Grid2>
+              </Grid>
             ))}
-          </Grid2>
+          </Grid>
         </Paper>
-      </Grid2>
+      </Grid>
 
-      <Grid2 xs={12}>
+      <Grid item xs={12}>
         <Paper sx={{ p: 3 }}>
           <Typography variant="h6" gutterBottom>
             Savings Goals
@@ -266,7 +266,7 @@ export default function BudgetsGoalsView() {
             })}
           </Box>
         </Paper>
-      </Grid2>
-    </Grid2>
+      </Grid>
+    </Grid>
   );
 }
