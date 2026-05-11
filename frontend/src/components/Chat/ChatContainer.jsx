@@ -6,20 +6,7 @@ import { ExpenseContext } from "../../context/ExpenseContext";
 import "../../styles/Chat.css";
 import ChatInputBox from "./ChatInputBox";
 import ChatMessage from "./ChatMessage";
-
-function createChatMessage(role, text, options = {}) {
-  const id =
-    typeof crypto !== "undefined" && crypto.randomUUID
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-  return {
-    id,
-    role,
-    text,
-    loading: Boolean(options.loading),
-  };
-}
+import { createChatMessage } from "../../utility/utility";
 
 export default function ChatContainer() {
   const { fetchAgentResponse, sessionId } = useContext(ExpenseContext);
