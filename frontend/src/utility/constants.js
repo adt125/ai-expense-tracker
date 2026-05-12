@@ -33,3 +33,17 @@ export const paymentSourceColors = [
   "#FB7185",
   "#A78BFA",
 ];
+
+export const dailySpendColors = {
+  dark: "#38BDF8",
+  light: "#6366F1",
+};
+
+export const categoryColors = [
+  "#6366F1",
+  "#10B981",
+  "#F59E0B",
+  "#F43F5E",
+  "#0F766E",
+];
+export const lowerCardHeight = { xs: 400, lg: "calc(100vh - 515px)" };

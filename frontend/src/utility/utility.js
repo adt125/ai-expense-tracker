@@ -98,3 +98,24 @@ export function buildDailySpendData(expenses) {
       amount: Math.round(values.amount),
     }));
 }
+
+export function buildCategoryData(expenses) {
+  const total = expenses.reduce(
+    (accumulator, expense) => accumulator + Number(expense.amount),
+    0,
+  );
+  const grouped = expenses.reduce((accumulator, expense) => {
+    const key = expense.primary_tag || "Other";
+    accumulator[key] = (accumulator[key] || 0) + Number(expense.amount);
+    return accumulator;
+  }, {});
+
+  return Object.entries(grouped)
+    .map(([name, value]) => ({
+      name,
+      value,
+      percent: total ? Math.round((value / total) * 100) : 0,
+    }))
+    .sort((first, second) => second.value - first.value)
+    .slice(0, 3);
+}
