@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import { ExpenseContext } from "../context/ExpenseContext";
+import { ExpenseContext } from "../../context/ExpenseContext";
 
 const primaryTags = [
   "Food",
@@ -245,8 +245,8 @@ export default function ExpenseForm({
             value={form.description}
             onChange={handleChange}
             placeholder="What was this expense for?"
-            multiline={compact || isDashboardVariant}
-            minRows={compact || isDashboardVariant ? 2 : 1}
+            multiline={compact}
+            minRows={compact ? 2 : 1}
             fullWidth
           />
         </Box>
@@ -255,10 +255,13 @@ export default function ExpenseForm({
           type="submit"
           variant="contained"
           size="large"
-          fullWidth
+          fullWidth={!isDashboardVariant}
           sx={{
-            mt: 1,
+            mt: isDashboardVariant ? 2.5 : 1,
             py: 1.2,
+            display: "flex",
+            mx: isDashboardVariant ? "auto" : 0,
+            width: isDashboardVariant ? { xs: "100%", md: "42%" } : "100%",
             background: "linear-gradient(135deg, #FF7A59 0%, #FB4D72 100%)",
             "&:hover": {
               background: "linear-gradient(135deg, #F97316 0%, #F43F5E 100%)",
@@ -269,7 +272,14 @@ export default function ExpenseForm({
         </Button>
 
         {selectedExpense && (
-          <Button variant="text" onClick={() => onClearSelection?.()}>
+          <Button
+            variant="text"
+            onClick={() => onClearSelection?.()}
+            sx={{
+              display: isDashboardVariant ? "flex" : "inline-flex",
+              mx: isDashboardVariant ? "auto" : 0,
+            }}
+          >
             Cancel editing
           </Button>
         )}

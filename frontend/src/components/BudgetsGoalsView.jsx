@@ -1,9 +1,6 @@
 import { useContext, useMemo, useState } from "react";
 import {
-  Avatar,
-  AvatarGroup,
   Box,
-  CircularProgress,
   LinearProgress,
   Paper,
   Slider,
@@ -11,15 +8,10 @@ import {
   Typography,
   Button,
 } from "@mui/material";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import Grid from "@mui/material/Grid";
 import { alpha } from "@mui/material/styles";
 import { ExpenseContext } from "../context/ExpenseContext";
-
-const householdMembers = [
-  { name: "Aditi", color: "#6366F1" },
-  { name: "Ravi", color: "#10B981" },
-  { name: "Sam", color: "#F59E0B" },
-];
 
 const goalCards = [
   { title: "Emergency Fund", target: 300000, saved: 182000, accent: "#0F766E" },
@@ -76,6 +68,7 @@ export default function BudgetsGoalsView() {
               max={150000}
               step={1000}
               value={budgetTarget}
+              // @ts-ignore
               onChange={(_, value) => setBudgetTarget(value)}
               sx={{ mt: 3 }}
             />
@@ -140,131 +133,86 @@ export default function BudgetsGoalsView() {
       <Grid item xs={12} md={7}>
         <Paper sx={{ p: 3, height: "100%" }}>
           <Stack
-            direction={{ xs: "column", md: "row" }}
+            direction={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
-            alignItems={{ xs: "flex-start", md: "center" }}
+            alignItems={{ xs: "flex-start", sm: "center" }}
             spacing={2}
-            mb={3}
+            sx={{ mb: 3 }}
           >
             <Box>
-              <Typography variant="h6">Shared Household View</Typography>
+              <Typography variant="h6" gutterBottom>
+                Savings Goals
+              </Typography>
               <Typography variant="body2" color="text.secondary">
-                See how each person contributes to a category budget.
+                Track active goals and compare progress at a glance.
               </Typography>
             </Box>
-            <AvatarGroup max={4}>
-              {householdMembers.map((member) => (
-                <Avatar
-                  key={member.name}
-                  sx={{ bgcolor: member.color, width: 36, height: 36 }}
-                >
-                  {member.name[0]}
-                </Avatar>
-              ))}
-            </AvatarGroup>
+            <Button
+              variant="contained"
+              startIcon={<AddRoundedIcon />}
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              Add goal
+            </Button>
           </Stack>
 
-          <Grid container spacing={2}>
-            {householdMembers.map((member, index) => (
-              <Grid item xs={12} md={4} key={member.name}>
-                <Paper
-                  sx={{
-                    p: 2,
-                    borderRadius: 3,
-                    bgcolor: alpha(member.color, 0.08 + index * 0.03),
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    {member.name}
-                  </Typography>
-                  <Typography variant="h5">
-                    {formatCurrency(
-                      (summary?.monthly_total || 0) * (0.24 + index * 0.12),
-                    )}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Estimated share this month
-                  </Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
-      </Grid>
-
-      <Grid item xs={12}>
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Savings Goals
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mb={3}>
-            Swipe through active goals and compare progress side by side.
-          </Typography>
-          <Box
-            sx={{
-              display: "grid",
-              gridAutoFlow: "column",
-              gridAutoColumns: { xs: "85%", md: "32%" },
-              gap: 2,
-              overflowX: "auto",
-              pb: 1,
-            }}
-          >
+          <Stack spacing={1.5}>
             {goalCards.map((goal) => {
               const progress = Math.round((goal.saved / goal.target) * 100);
               return (
                 <Paper
                   key={goal.title}
                   sx={{
-                    p: 3,
-                    minHeight: 220,
-                    borderRadius: 4,
-                    background: `linear-gradient(135deg, ${alpha(goal.accent, 0.12)} 0%, #FFFFFF 100%)`,
+                    p: 2,
+                    borderColor: alpha(goal.accent, 0.2),
+                    bgcolor: alpha(goal.accent, 0.06),
                   }}
                 >
                   <Stack
-                    direction="row"
+                    direction={{ xs: "column", sm: "row" }}
                     justifyContent="space-between"
-                    alignItems="flex-start"
+                    alignItems={{ xs: "stretch", sm: "center" }}
+                    spacing={2}
                   >
-                    <Box>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
                       <Typography variant="h6">{goal.title}</Typography>
                       <Typography variant="body2" color="text.secondary">
                         Target {formatCurrency(goal.target)}
                       </Typography>
-                    </Box>
-                    <Box sx={{ position: "relative", display: "inline-flex" }}>
-                      <CircularProgress
-                        variant="determinate"
-                        value={progress}
-                        size={72}
-                        thickness={5}
-                        sx={{ color: goal.accent }}
-                      />
-                      <Box
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          display: "grid",
-                          placeItems: "center",
-                        }}
-                      >
-                        <Typography variant="body2" fontWeight={700}>
-                          {progress}%
-                        </Typography>
+                      <Box sx={{ mt: 1.5 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={progress}
+                          sx={{
+                            height: 8,
+                            borderRadius: 999,
+                            bgcolor: alpha(goal.accent, 0.14),
+                            "& .MuiLinearProgress-bar": {
+                              borderRadius: 999,
+                              bgcolor: goal.accent,
+                            },
+                          }}
+                        />
                       </Box>
                     </Box>
+                    <Box
+                      sx={{
+                        minWidth: { sm: 170 },
+                        textAlign: { xs: "left", sm: "right" },
+                      }}
+                    >
+                      <Typography variant="h5">
+                        {formatCurrency(goal.saved)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {progress}% saved
+                      </Typography>
+                    </Box>
                   </Stack>
-                  <Typography variant="h4" sx={{ mt: 4 }}>
-                    {formatCurrency(goal.saved)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Saved so far
-                  </Typography>
                 </Paper>
               );
             })}
-          </Box>
+          </Stack>
         </Paper>
       </Grid>
     </Grid>

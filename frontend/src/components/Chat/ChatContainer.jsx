@@ -7,6 +7,7 @@ import "../../styles/Chat.css";
 import ChatInputBox from "./ChatInputBox";
 import ChatMessage from "./ChatMessage";
 import { createChatMessage } from "../../utility/utility";
+import { lowerCardHeight } from "../../utility/constants";
 
 export default function ChatContainer() {
   const { fetchAgentResponse, sessionId } = useContext(ExpenseContext);
@@ -104,7 +105,10 @@ export default function ChatContainer() {
   }, [chatMessages]);
 
   return (
-    <Paper className={`chat ${themeClassName}`}>
+    <Paper
+      className={`chat ${themeClassName}`}
+      sx={{ height: lowerCardHeight }}
+    >
       <Box className="chat__header">
         <Typography variant="h6">Ask Expenso</Typography>
         <IconButton
