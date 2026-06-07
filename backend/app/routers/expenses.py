@@ -1,12 +1,14 @@
 from datetime import date
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 from ..services import expense_service, user_service
 from .. import models, schemas
 from ..dependencies import get_current_user, get_db
-from ..services.excel_service import parse_expense_template
+import tempfile, shutil, os
+from pathlib import Path
+from ..ingest.pipeline import run_pipeline
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -62,32 +64,50 @@ def delete_expense(
 
 
 @router.post("/upload")
-def upload_expenses(
-    file: UploadFile = File(...),
+async def upload_expenses(
+    files: Annotated[
+        List[UploadFile], File(description="Bank statement PDFs or CSVs or XLSX")
+    ],
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not file.filename.endswith(".xlsx"):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Upload an .xlsx file"
-        )
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
 
-    content = file.file.read()
-    with open("/tmp/expense_upload.xlsx", "wb") as tmp_file:
-        tmp_file.write(content)
+    ALLOWED_EXTENSIONS = {".pdf", ".csv", ".xlsx", ".xls"}
+    MAX_FILE_SIZE_MB = 10
+
+    tmp_dir = tempfile.mkdtemp()
+    tmp_paths = []
 
     try:
-        rows = parse_expense_template("/tmp/expense_upload.xlsx")
-    except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+        for upload in files:
+            ext = Path(upload.filename).suffix.lower()
+            if ext not in ALLOWED_EXTENSIONS:
+                raise HTTPException(status_code=400, detail=f"Unsupported file type: {upload.filename}. Allowed: {ALLOWED_EXTENSIONS}")
 
-    imported = 0
-    for row in rows:
-        expense = schemas.ExpenseCreate(**row)
-        expense_service.create_expense(db, current_user.id, expense)
-        imported += 1
+            contents = await upload.read()
+            size_mb = len(contents) / (1024 * 1024)
+            if size_mb > MAX_FILE_SIZE_MB:
+                raise HTTPException(status_code=413, detail=f"{upload.filename} exceeds {MAX_FILE_SIZE_MB}MB limit")
 
-    return {"imported": imported, "message": f"Imported {imported} expenses."}
+            tmp_path = os.path.join(tmp_dir, upload.filename)
+            with open(tmp_path, "wb") as f:
+                f.write(contents)
+            tmp_paths.append(tmp_path)
+
+        # Run pipeline
+        result = run_pipeline(tmp_paths, db, current_user.id, dry_run=False)
+
+        return {
+            "imported": result.new_inserted,
+            "duplicates_skipped": result.duplicates_skipped,
+            "errors": result.errors,
+            "message": f"Added {result.new_inserted} new expenses" + (f", skipped {result.duplicates_skipped} duplicates" if result.duplicates_skipped else ""),
+        }
+
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 @router.get("/get_user_settings", response_model=schemas.UserSettingsRead)
